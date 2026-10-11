@@ -1,4 +1,4 @@
-import { db } from '../supabase-client.js?v=20261009-repo-rename-preparation-v101';
+import { db } from '../supabase-client.js?v=20261011-uniform-auth-v103';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const authButton = document.querySelector('#adminAuth');

@@ -1,0 +1,111 @@
+/* Provider branding is intentionally independent of the site's button theme.
+   Artwork sources and font license: Images/Auth/README.txt. */
+@font-face {
+  font-family: "Mirrorball Google Sans";
+  src: url("Images/Auth/google-sans-medium.ttf") format("truetype");
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+}
+
+.signin-card .signin-actions {
+  gap: 12px;
+  padding: 5px 0;
+}
+.account-provider-links .provider-actions {
+  display: grid;
+  gap: 12px;
+  padding: 5px 0;
+}
+.signin-card .signin-actions .provider-button,
+.account-provider-links .provider-button {
+  appearance: none;
+  box-sizing: border-box;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex: 1 1 235px;
+  width: 100%;
+  max-width: 375px;
+  height: 44px;
+  min-height: 44px;
+  margin: 0;
+  border-radius: 7px;
+  background-image: none;
+  box-shadow: none;
+  cursor: pointer;
+  text-transform: none;
+  white-space: nowrap;
+  isolation: isolate;
+}
+.signin-card .signin-actions .provider-button-google,
+.account-provider-links .provider-button-google {
+  gap: 10px;
+  padding: 0 12px;
+  border: 1px solid #747775;
+  background-color: #fff;
+  color: #1f1f1f;
+  font: 500 14px/20px "Mirrorball Google Sans", Arial, sans-serif;
+  letter-spacing: .25px;
+}
+.provider-button-google img {
+  display: block;
+  width: 20px;
+  height: 20px;
+  object-fit: contain;
+  flex: 0 0 20px;
+}
+.signin-card .signin-actions .provider-button-apple,
+.account-provider-links .provider-button-apple {
+  gap: 0;
+  padding: 0 8%;
+  border: 0;
+  background-color: #fff;
+  color: #000;
+  /* Apple permits custom title typography. Match Google's 14px medium label
+     rather than mixing the larger native iOS title with a web-sized label. */
+  font: 500 14px/20px -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  letter-spacing: .25px;
+}
+.account-provider-links .provider-button-apple {
+  background-color: #000;
+  color: #fff;
+}
+/* Apple's SVG includes required clear space; keep the full 44px artwork. */
+.provider-button-apple img {
+  display: block;
+  width: 31px;
+  height: 44px;
+  flex: 0 0 31px;
+}
+.signin-card .signin-actions .provider-button:not(:disabled):hover,
+.account-provider-links .provider-button:not(:disabled):hover {
+  transform: none;
+  box-shadow: 0 1px 3px #0003;
+}
+.provider-button::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: currentColor;
+  opacity: 0;
+  pointer-events: none;
+}
+.provider-button:not(:disabled):hover::after { opacity: .06; }
+.provider-button:not(:disabled):active::after { opacity: .12; }
+.signin-card .signin-actions .provider-button:focus-visible,
+.account-provider-links .provider-button:focus-visible {
+  outline: 3px solid #8ab4f8;
+  outline-offset: 3px;
+}
+.signin-card .signin-actions .provider-button:disabled,
+.account-provider-links .provider-button:disabled {
+  cursor: default;
+  opacity: .65;
+}
+.provider-actions[hidden],
+.account-provider-links[hidden],
+.signin-card .signin-actions .provider-button[hidden],
+.account-provider-links .provider-button[hidden] { display: none; }

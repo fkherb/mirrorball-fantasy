@@ -1,5 +1,5 @@
-import { db } from './supabase-client.js?v=20261009-repo-rename-preparation-v101';
-import { prepareProfilePicture } from './profile-picture.js?v=20261009-repo-rename-preparation-v101';
+import { db } from './supabase-client.js?v=20261011-uniform-auth-v103';
+import { prepareProfilePicture } from './profile-picture.js?v=20261011-uniform-auth-v103';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const buttons = [...document.querySelectorAll('nav button[data-view]')];
@@ -62,7 +62,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   menu.querySelector('#accountProfileActions').after(deleteAccountButton);
   const providerLinks = document.createElement('div');
   providerLinks.className = 'account-provider-links';
-  providerLinks.innerHTML = '<p class="eyebrow">Link an account</p><p class="account-profile-hint">Add another way to sign in to this same profile.</p><button id="connectGoogle" type="button" class="secondary">Link Google</button><button id="connectApple" type="button" class="secondary">Link Apple</button><p id="providerLinkMessage" class="account-profile-hint" role="status"></p>';
+  providerLinks.innerHTML = '<p class="eyebrow">Link an account</p><p id="providerLinkHint" class="account-profile-hint">Choose a provider below to link it to this same profile.</p><div class="provider-actions"><button id="connectGoogle" type="button" class="provider-button provider-button-google" aria-describedby="providerLinkHint"><img src="Images/Auth/google-g.png" width="20" height="20" alt=""><span>Continue with Google</span></button><button id="connectApple" type="button" class="provider-button provider-button-apple" aria-describedby="providerLinkHint"><img src="Images/Auth/apple-logo-white.svg" width="31" height="44" alt=""><span>Continue with Apple</span></button></div><p id="providerLinkMessage" class="account-profile-hint" role="status"></p>';
   providerLinks.hidden = true;
   menu.querySelector('.account-admin-links').before(providerLinks);
   const email = document.querySelector('#accountEmail');
