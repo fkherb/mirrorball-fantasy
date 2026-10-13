@@ -1,4 +1,4 @@
-import { db } from '../supabase-client.js?v=20261013-song-fields-v104';
+import { db } from '../supabase-client.js?v=20261013-canonical-songs-styles-v105';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const authButton = document.querySelector('#adminAuth');

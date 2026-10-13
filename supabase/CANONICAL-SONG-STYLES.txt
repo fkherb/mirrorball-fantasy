@@ -1,0 +1,60 @@
+Song fields and dance styles rollout (October 13, 2026)
+
+The database migration has been applied to project mdrrnanxqazecqviaass.
+match-dance-songs has been redeployed with the title+artist callback.
+Publish the website changes from this repository after applying the migration.
+No columns, dances, historical scores, appearances, or catalog entries were removed.
+
+Migration source:
+  migrations/20261013200106_canonical_song_fields_and_dance_styles.sql
+Read-only verification:
+  check-canonical-song-styles.sql
+
+New website API:
+  save_dance_atomic_v2(
+    p_week_id, p_dance_id, p_kind, p_partnership_id, p_name, p_dance_type,
+    p_song_title, p_song_artist, p_judge_scores, p_cast_member_ids,
+    p_scores_only, p_details
+  )
+  p_details is optional JSON containing performance_type, choreography, airing_night.
+  Performance style remains optional free text in dances.performance_type.
+  Competitive style remains in dances.dance_type, validated against dance_styles.
+  Fusion requires two different catalog names, excluding Fusion itself.
+
+Compatible original API, for the iOS handoff:
+  save_dance_atomic now accepts p_song_title and p_song_artist.
+  All original parameter names remain valid. p_song is optional.
+  New callers should omit p_song (or pass null) and send the separate fields.
+  Non-null explicit new fields take priority over a stale combined value.
+  To clear both fields, omit/null p_song and pass null for the two new fields.
+  Score-only corrections preserve song, style, cast and performance metadata.
+
+Automation:
+  No new server Python installation is needed for this migration.
+  dwts-wiki already returns dance, song (title only), and artist separately.
+  The database importer now validates against dance_styles and writes split fields.
+  First observation is visible; two matching runs confirm and remove the target.
+  Existing ordering, photo diagnostics and worker payloads stay unchanged.
+  The logical automation key "dance_types" and confirmation key "song" are not
+  dependencies on the retired catalog or legacy column, and remain compatible.
+
+Compatibility and removal gate:
+  dances.song is retained as a generated compatibility COPY maintained by a trigger,
+  not a PostgreSQL generated column. It is no longer the normal source of truth.
+  Old combined writes are translated and counted in a private aggregate ledger.
+  Run: select public.get_song_format_migration_status();
+  These counts measure legacy writes/callbacks, NOT all reads.
+  Keep the column and old APIs until clients are updated, usage is reviewed,
+  and a separate removal is explicitly approved.
+
+Verification performed:
+  - Isolated PostgreSQL migration, rerun and unchanged historical-row checks.
+  - New catalog-only style, normalized Wiki aliases and Fusion validation.
+  - Free-text performance style and incomplete performance creation.
+  - New/old save APIs, direct legacy writes, clearing and embedded " by " text.
+  - Manual confirmation, score-only edits, permissions and transactional rollback.
+  - Automatic music reset, manual-link preservation and stale artist callbacks.
+  - Full worker cycle: first-seen details, two checks, pending removal, scores/order,
+    next-week creation, eliminated filtering and photo diagnostics.
+  - Live before/after hashes matched for all 84 dances, judge scores, appearances,
+    and the 19-entry dance_styles catalog.

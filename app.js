@@ -1,16 +1,16 @@
-import { db } from './supabase-client.js?v=20261013-song-fields-v104';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-song-fields-v104';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-song-fields-v104';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-song-fields-v104';
-import { loadMarketPredictions } from './market-predictions.js?v=20261013-song-fields-v104';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-song-fields-v104';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-song-fields-v104';
-import { danceSongParts, danceSongLabel, joinDanceSong } from './dance-song.js?v=20261013-song-fields-v104';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-song-fields-v104';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-song-fields-v104';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-song-fields-v104';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-song-fields-v104';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-song-fields-v104';
+import { db } from './supabase-client.js?v=20261013-canonical-songs-styles-v105';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-canonical-songs-styles-v105';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-canonical-songs-styles-v105';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-canonical-songs-styles-v105';
+import { loadMarketPredictions } from './market-predictions.js?v=20261013-canonical-songs-styles-v105';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-canonical-songs-styles-v105';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-canonical-songs-styles-v105';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-canonical-songs-styles-v105';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-canonical-songs-styles-v105';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-canonical-songs-styles-v105';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-canonical-songs-styles-v105';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-canonical-songs-styles-v105';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-canonical-songs-styles-v105';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -1828,8 +1828,8 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
   const { players, partnerships, weeks } = await getPairingData();
   const { data: danceTypes, error: danceTypeError } = scoresOnly
     ? { data: [], error: null }
-    : await db.from('dance_types').select('name').order('name');
-  if (danceTypeError) return alert(`Couldn’t load dance types: ${danceTypeError.message}. Run the dance-type SQL update first.`);
+    : await db.from('dance_styles').select('name').order('name');
+  if (danceTypeError) return alert(`Couldn’t load dance styles: ${danceTypeError.message}. Check the dance_styles catalog and its read permissions.`);
   const existingSong = danceSongParts(existingDance);
   const existingType = splitDanceType(existingDance?.dance_type);
   const activePairs = partnerships.filter((pairing) => {
@@ -1862,12 +1862,12 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
     const pairOptions = selectablePairs.map((pairing) => { const star = players.find((player) => player.id === pairing.star_id); const pro = players.find((player) => player.id === pairing.pro_id); return `<option value="${pairing.id}" ${pairing.id === existingDance?.partnership_id ? 'selected' : ''}>${escapeHtml(star.name)} & ${escapeHtml(pro.name)}</option>`; }).join('');
     const castEditor = scoresOnly ? '' : `<h3>Cast appearances</h3><input id="danceCastSearch" placeholder="Search cast" autocomplete="off"><div class="filter-tabs" id="danceCastTabs"><button class="selected" data-dance-filter="all">All</button><button data-dance-filter="pros">Pros</button><button data-dance-filter="stars">Stars</button><button data-dance-filter="bonus">Bonus</button></div><div id="bonusDanceFilters" class="mini-filters" hidden><button class="selected" data-dance-bonus-filter="all">All bonus</button><button data-dance-bonus-filter="troupe">Troupe</button><button data-dance-bonus-filter="nextpro">Next Pro</button><button data-dance-bonus-filter="judges">Judges + Hosts</button></div><div id="danceCastPicker" class="cast-picker">${castPicker()}</div>`;
     const typeOptions = danceTypes.map((type) => `<option value="${escapeHtml(type.name)}" ${type.name === existingType.type ? 'selected' : ''}>${escapeHtml(type.name)}</option>`).join('');
-    const fusionOptions = (selected) => `<option value="">Select a dance type</option>${danceTypes.filter((type) => type.name !== 'Fusion').map((type) => `<option value="${escapeHtml(type.name)}" ${type.name === selected ? 'selected' : ''}>${escapeHtml(type.name)}</option>`).join('')}`;
+    const fusionOptions = (selected) => `<option value="">Select a dance style</option>${danceTypes.filter((type) => type.name !== 'Fusion').map((type) => `<option value="${escapeHtml(type.name)}" ${type.name === selected ? 'selected' : ''}>${escapeHtml(type.name)}</option>`).join('')}`;
     const fusionEditor = `<div id="fusionDanceTypes" class="fusion-dance-types" ${existingType.type === 'Fusion' ? '' : 'hidden'}><label>First style<select id="fusionTypeOne">${fusionOptions(existingType.first)}</select></label><label>Second style<select id="fusionTypeTwo">${fusionOptions(existingType.second)}</select></label></div>`;
     const nightEditor = week.second_air_date && !scoresOnly
       ? `<label>Airing night<select id="danceAiringNight" required><option value="">Select night</option><option value="1" ${Number(existingDance?.airing_night) === 1 ? 'selected' : ''}>Night 1</option><option value="2" ${Number(existingDance?.airing_night) === 2 ? 'selected' : ''}>Night 2</option></select></label>` : '';
-    const competitiveEditor = scoresOnly ? `<p class="sub">Update the individual judge scores for this competitive dance.</p>${judgeScoreSelectors}` : `<label class="couple-select">Couple<select id="dancePartnership"><option value="">Select couple</option>${pairOptions}</select></label><div class="dance-details"><label>Dance type <span class="optional">(optional)</span><select id="danceType"><option value="">Not set yet</option>${typeOptions}</select></label>${fusionEditor}<label>Song title <span class="optional">(optional)</span><input id="danceSongTitle" value="${escapeHtml(existingSong.title)}" placeholder="Song title"></label><label>Artist <span class="optional">(optional)</span><input id="danceSongArtist" value="${escapeHtml(existingSong.artist)}" placeholder="Artist"></label></div><p class="sub judge-hint">You can save the lineup now and enter judges’ scores during the show.</p>${judgeScoreSelectors}`;
-    const performanceEditor = `<label>Dance name <span class="optional">(optional)</span><input id="danceName" value="${escapeHtml(existingDance?.name || '')}" placeholder="Week ${week.number} Dance ${danceCount + 1}"></label><div class="dance-details"><label>Type <span class="optional">(optional)</span><input id="performanceType" value="${escapeHtml(existingDance?.performance_type || '')}" placeholder="Opening number, troupe dance, etc."></label><label>Song <span class="optional">(optional)</span><input id="danceSongTitle" value="${escapeHtml(existingSong.title)}" placeholder="Song title"></label><label>Artist <span class="optional">(optional)</span><input id="danceSongArtist" value="${escapeHtml(existingSong.artist)}" placeholder="Artist"></label><label>Choreographer(s) <span class="optional">(optional)</span><input id="danceChoreography" value="${escapeHtml(existingDance?.choreography || '')}" placeholder="Choreographer names"></label></div>`;
+    const competitiveEditor = scoresOnly ? `<p class="sub">Update the individual judge scores for this competitive dance.</p>${judgeScoreSelectors}` : `<label class="couple-select">Couple<select id="dancePartnership"><option value="">Select couple</option>${pairOptions}</select></label><div class="dance-details"><label>Dance style <span class="optional">(optional)</span><select id="danceType"><option value="">Not set yet</option>${typeOptions}</select></label>${fusionEditor}<label>Song title <span class="optional">(optional)</span><input id="danceSongTitle" value="${escapeHtml(existingSong.title)}" placeholder="Song title"></label><label>Artist <span class="optional">(optional)</span><input id="danceSongArtist" value="${escapeHtml(existingSong.artist)}" placeholder="Artist"></label></div><p class="sub judge-hint">You can save the lineup now and enter judges’ scores during the show.</p>${judgeScoreSelectors}`;
+    const performanceEditor = `<label>Dance name <span class="optional">(optional)</span><input id="danceName" value="${escapeHtml(existingDance?.name || '')}" placeholder="Week ${week.number} Dance ${danceCount + 1}"></label><div class="dance-details"><label>Performance style <span class="optional">(optional · free text)</span><input id="performanceType" value="${escapeHtml(existingDance?.performance_type || '')}" placeholder="Opening number, troupe dance, etc."></label><label>Song <span class="optional">(optional)</span><input id="danceSongTitle" value="${escapeHtml(existingSong.title)}" placeholder="Song title"></label><label>Artist <span class="optional">(optional)</span><input id="danceSongArtist" value="${escapeHtml(existingSong.artist)}" placeholder="Artist"></label><label>Choreographer(s) <span class="optional">(optional)</span><input id="danceChoreography" value="${escapeHtml(existingDance?.choreography || '')}" placeholder="Choreographer names"></label></div>`;
     $('#danceForm').innerHTML = `${nightEditor}${kind === 'competitive' ? competitiveEditor : performanceEditor}${castEditor}`;
     if (!scoresOnly) {
       $('#danceType')?.addEventListener('change', (event) => { $('#fusionDanceTypes').hidden = event.target.value !== 'Fusion'; });
@@ -1892,13 +1892,12 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
     const fusionFirst = selectedType === 'Fusion' ? $('#fusionTypeOne').value : '';
     const fusionSecond = selectedType === 'Fusion' ? $('#fusionTypeTwo').value : '';
     if (selectedType === 'Fusion' && (!fusionFirst || !fusionSecond || fusionFirst === fusionSecond))
-      return alert('Select two different dance types for Fusion.');
+      return alert('Select two different dance styles for Fusion.');
     const dance_type = kind === 'competitive'
       ? scoresOnly ? existingDance.dance_type : joinDanceType(selectedType, fusionFirst, fusionSecond)
       : null;
-    // Keep the current atomic-save contract; display and editor values come
-    // exclusively from song_title/song_artist. Score-only edits ignore p_song.
-    const song = scoresOnly ? null : joinDanceSong($('#danceSongTitle').value, $('#danceSongArtist').value) || null;
+    const songTitle = scoresOnly ? null : $('#danceSongTitle').value.trim() || null;
+    const songArtist = scoresOnly ? null : $('#danceSongArtist').value.trim() || null;
     if (!scoresOnly && $('#danceSongArtist').value.trim() && !$('#danceSongTitle').value.trim()) return alert('Enter a song title before the artist.');
     const scoreInputs = kind === 'competitive' ? [...document.querySelectorAll('[data-judge]')].filter((input) => input.value !== '') : [];
     if (scoreInputs.some((input) => !Number.isInteger(Number(input.value)) || Number(input.value) < 0 || Number(input.value) > 10)) return alert('Select a judge score from 1 to 10.');
@@ -1906,40 +1905,24 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
     const airingNight = week.second_air_date && !scoresOnly ? Number($('#danceAiringNight').value) || null : null;
     if (week.second_air_date && !scoresOnly && !airingNight) return alert('Select the night this dance aired.');
     const saveButton = $('#saveDance'); saveButton.disabled = true;
-    if (kind === 'performance' || airingNight) {
-      const columns = [kind === 'performance' ? 'choreography,performance_type' : '', airingNight ? 'airing_night' : ''].filter(Boolean).join(',');
-      const { error: schemaError } = await db.from('dances').select(columns).limit(1);
-      if (schemaError) {
-        saveButton.disabled = false;
-        return alert('Dance details are not ready in the database. Run the performance-detail, performance-type, and dance-airing-night SQL updates in Supabase before saving.');
-      }
-    }
-    const atomicSave = await db.rpc('save_dance_atomic', {
+    const details = scoresOnly ? null : {
+      ...(kind === 'performance' ? {
+        choreography: $('#danceChoreography').value.trim() || null,
+        performance_type: $('#performanceType').value.trim() || null,
+      } : {}),
+      ...(airingNight ? { airing_night: airingNight } : {}),
+    };
+    const atomicSave = await db.rpc('save_dance_atomic_v2', {
       p_week_id: week.id, p_dance_id: existingDance?.id || null, p_kind: kind, p_partnership_id: partnership_id,
-      p_name: name, p_dance_type: dance_type, p_song: song,
+      p_name: name, p_dance_type: dance_type, p_song_title: songTitle, p_song_artist: songArtist,
       p_judge_scores: scoreInputs.map((input) => ({ judge_name: input.dataset.judge, score: Number(input.value) })),
-      p_cast_member_ids: selectedAppearanceIds, p_scores_only: scoresOnly,
+      p_cast_member_ids: selectedAppearanceIds, p_scores_only: scoresOnly, p_details: details,
     });
     if (!atomicSave.error) {
-      if (kind === 'performance' || airingNight) {
-        const details = kind === 'performance' ? {
-          choreography: $('#danceChoreography').value.trim() || null,
-          performance_type: $('#performanceType').value.trim() || null,
-        } : {};
-        if (airingNight) details.airing_night = airingNight;
-        const { data: updated, error: detailsError } = await db.from('dances').update({
-          ...details,
-        }).eq('id', atomicSave.data).eq('week_id', week.id).eq('kind', kind).select('id');
-        if (detailsError || updated?.length !== 1) {
-          $('#modal').close();
-          loadScoreDesk();
-          return alert(`The dance was saved, but its details were not: ${detailsError?.message || 'The saved dance could not be updated.'}. Reopen it in Score Desk after checking the database update.`);
-        }
-      }
       $('#modal').close(); loadScoreDesk(); refreshRoster(); loadStandings(); return;
     }
     saveButton.disabled = false;
-    const migrationHint = missingRpc(atomicSave.error) ? ' Run the current workflow-hardening SQL migration first.' : '';
+    const migrationHint = missingRpc(atomicSave.error) ? ' Run the canonical song-fields and dance-styles migration first.' : '';
     alert(`Couldn’t save this dance: ${atomicSave.error.message}${migrationHint}`);
   });
   $('#deleteDance')?.addEventListener('click', () => openConfirmation({ title: 'Delete this dance?', message: 'All recorded scores and appearances for this dance will also be deleted. This cannot be undone.', confirmLabel: 'Delete dance', destructive: true, onCancel: () => openNewDance(week, index, existingDance, existingScores, existingAppearanceIds, initialKind, scoresOnly), onConfirm: async () => { const { error } = await db.from('dances').delete().eq('id', existingDance.id); if (!error) { loadScoreDesk(); loadRoster(); loadStandings(); } return error; } }));

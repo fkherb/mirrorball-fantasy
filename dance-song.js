@@ -11,8 +11,7 @@ export function danceSongLabel(dance) {
   return title ? joinDanceSong(title, artist) : artist;
 }
 
-// Formatting only. The current save_dance_atomic RPC still accepts p_song;
-// its database trigger fills song_title/song_artist and refreshes music matches.
+// Presentation formatting only. Save title/artist separately via the new API.
 export function joinDanceSong(title, artist) {
   const cleanTitle = String(title || '').trim();
   const cleanArtist = String(artist || '').trim();

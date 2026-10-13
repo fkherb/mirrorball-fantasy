@@ -1,12 +1,12 @@
-import { db } from './supabase-client.js?v=20261013-song-fields-v104';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-song-fields-v104';
-import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261013-song-fields-v104';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-song-fields-v104';
-import { loadMarketPredictions } from './market-predictions.js?v=20261013-song-fields-v104';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-song-fields-v104';
-import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261013-song-fields-v104';
-import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261013-song-fields-v104';
-import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261013-song-fields-v104';
+import { db } from './supabase-client.js?v=20261013-canonical-songs-styles-v105';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-canonical-songs-styles-v105';
+import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261013-canonical-songs-styles-v105';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-canonical-songs-styles-v105';
+import { loadMarketPredictions } from './market-predictions.js?v=20261013-canonical-songs-styles-v105';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-canonical-songs-styles-v105';
+import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261013-canonical-songs-styles-v105';
+import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261013-canonical-songs-styles-v105';
+import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261013-canonical-songs-styles-v105';
 
 const $ = (selector) => document.querySelector(selector);
 const safe = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({

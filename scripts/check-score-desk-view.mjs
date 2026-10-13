@@ -20,13 +20,16 @@ assert.match(app, /prepareNextWeekCompetitiveDances\(\{ \.\.\.week, is_complete:
 assert.match(app, /<select data-judge=/, 'Judge scores must use a native selector.');
 assert.match(app, /Array\.from\(\{ length: 10 \}/, 'The selector must offer scores 1 through 10.');
 assert.doesNotMatch(app, /<input data-judge=/, 'Judge scores should not need typed number entry.');
-assert.match(app, /db\.from\('dance_types'\)\.select\('name'\)/, 'Score Desk must load the shared dance-type catalog.');
+assert.match(app, /db\.from\('dance_styles'\)\.select\('name'\)/, 'Score Desk must load the new dance-style catalog.');
+assert.doesNotMatch(app, /db\.from\('dance_types'\)/, 'Do not fall back to the retired style table.');
 assert.match(app, /<select id="danceType">/, 'Dance type must use a selector.');
 assert.doesNotMatch(app, /<input id="danceType"/, 'Dance type must not require typed entry.');
 assert.match(app, /id="danceChoreography"/, 'Performance dances need choreography editing.');
 assert.match(app, /id="performanceType"/, 'Performance dances need a Type field.');
 assert.match(app, /id="danceAiringNight"/, 'Both kinds of dance need a two-night airing selector.');
-assert.match(app, /details\.airing_night = airingNight/, 'The selected night must be saved with each dance.');
+assert.match(app, /airing_night: airingNight/, 'The selected night must be saved with each dance.');
+assert.match(app, /p_details: details/, 'Optional performance details and night must be part of the atomic save.');
+assert.match(app, /Performance style/, 'Performance style remains a free-text optional input.');
 assert.match(danceNightSql, /check \(airing_night in \(1, 2\)\)/,
   'The database must constrain airing nights to one or two.');
 assert.match(app, /week\.is_complete && !scoresOnly\) return/,

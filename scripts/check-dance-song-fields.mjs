@@ -22,7 +22,7 @@ assert.equal(danceSongLabel({ song_title: null, song_artist: 'Artist only' }), '
 assert.deepEqual(danceSongParts({ song_title: 'Title by the Sea', song_artist: 'Music by Friends' }),
   { title: 'Title by the Sea', artist: 'Music by Friends' }, 'Do not split legitimate text containing " by ".');
 assert.equal(joinDanceSong(row.song_title, row.song_artist), 'Stand by Me by Ben E. King',
-  'The existing save_dance_atomic contract must still receive the formatted value.');
+  'Presentation can combine the separate values without parsing them.');
 assert.equal(joinDanceSong('', ''), '');
 
 for (const kind of ['competitive', 'performance']) {
@@ -54,8 +54,9 @@ assert.doesNotMatch(app + workspace, /dance\.song\b|existingDance\??\.song\b/,
   'Website readers must never use the legacy combined database column.');
 assert.doesNotMatch(app + workspace + view + songModule, /splitDanceSong|lastIndexOf\(' by '\)/);
 assert.match(app, /const existingSong = danceSongParts\(existingDance\)/);
-assert.match(app, /scoresOnly \? null : joinDanceSong/);
-assert.match(app, /p_song: song/, 'Preserve the existing RPC and its database synchronization trigger.');
+assert.match(app, /db\.rpc\('save_dance_atomic_v2'/);
+assert.match(app, /p_song_title: songTitle, p_song_artist: songArtist/);
+assert.doesNotMatch(app, /p_song:|joinDanceSong/, 'The website must never combine song fields for saving.');
 assert.match(app, /songTitle: dance\.song_title, songArtist: dance\.song_artist/);
 assert.match(workspace, /songTitle: dance\.song_title, songArtist: dance\.song_artist/);
 assert.match(app, /db\.from\('dances'\)\.select\('\*'\)\.eq\('week_id', week\.id\)/,

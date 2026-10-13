@@ -1,4 +1,4 @@
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-song-fields-v104';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-canonical-songs-styles-v105';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
