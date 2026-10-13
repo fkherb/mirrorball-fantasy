@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail,
   castRosterRow, danceCard, teamPage, roleRatesTable, castProfile, danceDetail, judgePortraitFor, judgeMemberFor } from '../postdraft-view.js';
-import { splitDanceSong, joinDanceSong } from '../dance-song.js';
+import { danceSongParts, danceSongLabel, joinDanceSong } from '../dance-song.js';
 import { avatarFrameFor, avatarImageStyle } from '../cast-avatar-frame.js';
 import { couplePhotoFrameFor, couplePhotoStyle } from '../couple-photo-frame.js';
 
@@ -27,10 +27,10 @@ assert.match(teamDetail({ manager: 'Manager', name: 'Team', roster: [{ ...member
 assert.match(castRosterRow({ id: member.id, name: member.name, roleDetails: 'Pro',
   image: '/portrait.png', position: 0 }), /object-position:0% center/);
 assert.match(danceCard({ id: 'dance-1', kind: 'competitive', title: member.name,
-  danceType: 'Foxtrot', song: 'Song', scores: [], castNames: [member.name],
+  danceType: 'Foxtrot', songTitle: 'Song', scores: [], castNames: [member.name],
   scoreImage: () => '/paddle.png', pending: true }), /Awaiting scores/);
 assert.match(danceCard({ id: 'dance-photo', kind: 'competitive', title: 'Pair',
-  danceType: 'Foxtrot', song: 'Song', scores: [], castNames: [], scoreImage: () => '/paddle.png',
+  danceType: 'Foxtrot', songTitle: 'Song', scores: [], castNames: [], scoreImage: () => '/paddle.png',
   photos: ['Images/Dances/Week%201/Pair-1.jpeg'] }), /dance-card-photo/);
 assert.match(danceCard({ id: 'night-two', kind: 'competitive', title: 'Pair',
   scores: [], castNames: [], airingNight: 2 }), /Night 2/);
@@ -67,12 +67,12 @@ assert.doesNotMatch(danceCard({ id: 'real-photo', kind: 'competitive', title: 'P
   castNames: [], photos: ['/dance.jpg'], placeholderPhoto: '/couple.avif' }), /couple.avif/);
 assert.match(danceCard({ id: 'upcoming', kind: 'competitive', title: 'Pair', scores: [],
   castNames: [], weekNumber: 4, complete: false }), /prediction-ring-tba/);
-assert.deepEqual(splitDanceSong('Escape (The Piña Colada Song) by Rupert Holmes'),
+assert.deepEqual(danceSongParts({ song_title: 'Escape (The Piña Colada Song)', song_artist: 'Rupert Holmes' }),
   { title: 'Escape (The Piña Colada Song)', artist: 'Rupert Holmes' });
 assert.equal(joinDanceSong('Maneater', 'Hall & Oates'), 'Maneater by Hall & Oates');
 assert.equal(joinDanceSong('Song only', ''), 'Song only');
 const extraCastCard = danceCard({ id: 'dance-extra', kind: 'competitive', title: 'Pair',
-  danceType: 'Foxtrot', song: 'Escape (The Piña Colada Song) by Rupert Holmes',
+  danceType: 'Foxtrot', songTitle: 'Escape (The Piña Colada Song)', songArtist: 'Rupert Holmes',
   scores: [{ judge_name: 'Derek', score: 7 }], castNames: ['One', 'Two'],
   scoreImage: () => '/paddle.png' });
 assert.match(extraCastCard, /class="dance-song-pill"/);
@@ -149,7 +149,7 @@ assert.match(castProfile({ member, image: '/portrait.png', role: 'Pro', backLabe
 assert.match(teamDetail({ manager: 'Manager', name: 'Team', roster: [], imageFor: () => '', backLabel: 'profile' }),
   /id="teamProfileBack"[^>]*aria-label="Back to profile">← Back<\/button>/);
 assert.match(danceDetail({ kind: 'competitive', title: member.name, danceType: 'Foxtrot',
-  song: 'Song', scores: [{ judge_name: 'Judge', score: 8 }], scoreImage: () => '/paddle.png',
+  songTitle: 'Song', scores: [{ judge_name: 'Judge', score: 8 }], scoreImage: () => '/paddle.png',
   teams: [{ name: 'Team', points: 8 }], castRows: [{ member, role: 'Pro', teamName: 'Team', points: 8 }],
   imageFor: () => '/portrait.png' }), /data-dance-cast-profile="cast-1"/);
 assert.match(danceDetail({ kind: 'competitive', title: 'Pair', scores: [{ judge_name: 'Derek', score: 9 }],
@@ -160,12 +160,12 @@ assert.match(danceDetail({ kind: 'competitive', title: 'Pair', scores: [], teams
 assert.match(danceDetail({ kind: 'competitive', title: 'Pair', scores: [], teams: [], castRows: [],
   placeholderPhoto: '/couple.avif', imageFor: () => '' }), /src="\/couple.avif"/);
 const detailedPerformanceCard = danceCard({ id: 'performance', kind: 'performance', title: 'Opening Number',
-  performanceType: 'Opening number', song: 'Fantasy by Mariah Carey', choreography: 'The troupe', scores: [], castNames: [] });
+  performanceType: 'Opening number', songTitle: 'Fantasy', songArtist: 'Mariah Carey', choreography: 'The troupe', scores: [], castNames: [] });
 assert.match(detailedPerformanceCard, /Opening number/);
 assert.match(detailedPerformanceCard, /Fantasy by Mariah Carey/);
 assert.match(detailedPerformanceCard, /Choreographer\(s\): The troupe/);
 assert.match(danceDetail({ kind: 'performance', title: 'Opening Number',
-  performanceType: 'Opening number', song: 'Fantasy by Mariah Carey', choreography: 'The troupe',
+  performanceType: 'Opening number', songTitle: 'Fantasy', songArtist: 'Mariah Carey', choreography: 'The troupe',
   scores: [], teams: [], castRows: [], imageFor: () => '' }), /Choreographer\(s\): The troupe/);
 
 console.log('Shared post-draft views verified.');

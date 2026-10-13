@@ -1,16 +1,16 @@
-import { db } from './supabase-client.js?v=20261011-uniform-auth-v103';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261011-uniform-auth-v103';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261011-uniform-auth-v103';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261011-uniform-auth-v103';
-import { loadMarketPredictions } from './market-predictions.js?v=20261011-uniform-auth-v103';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261011-uniform-auth-v103';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261011-uniform-auth-v103';
-import { splitDanceSong, joinDanceSong } from './dance-song.js?v=20261011-uniform-auth-v103';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261011-uniform-auth-v103';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261011-uniform-auth-v103';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261011-uniform-auth-v103';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261011-uniform-auth-v103';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261011-uniform-auth-v103';
+import { db } from './supabase-client.js?v=20261013-song-fields-v104';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-song-fields-v104';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-song-fields-v104';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-song-fields-v104';
+import { loadMarketPredictions } from './market-predictions.js?v=20261013-song-fields-v104';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-song-fields-v104';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-song-fields-v104';
+import { danceSongParts, danceSongLabel, joinDanceSong } from './dance-song.js?v=20261013-song-fields-v104';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-song-fields-v104';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-song-fields-v104';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-song-fields-v104';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-song-fields-v104';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-song-fields-v104';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -1432,7 +1432,7 @@ async function loadScoreDesk() {
   // Score Desk is an editing list, including completed weeks. Public dance
   // cards and photography belong on the Dances page, not this workspace.
   $('#scoreDeskContent').innerHTML = `<div class="score-week-head card ${weekEditing ? 'week-editing' : ''}"><div class="week-heading"><p class="eyebrow">Week ${week.number}</p><div class="week-title-line"><h2>${escapeHtml(weekTitle(week))}</h2>${editable && !weekEditing ? '<button class="week-edit-pill" id="editWeek">Edit</button>' : ''}</div>${weekEditing ? weekFields : `<p class="sub">${week.guest_judge_name ? `Guest judge: ${escapeHtml(week.guest_judge_name)} · ` : ''}${weekStatus}</p>`}</div>${weekEditing ? '<div class="week-edit-actions"><button class="secondary" id="cancelWeekEdit">Cancel</button><button id="saveWeek">Save changes</button></div>' : `<div class="week-summary"><span>${competitiveCount} competitive</span><span>${performanceCount} performances</span>${week.is_complete ? '<span class="week-complete">Complete</span>' : ''}</div><div class="score-week-actions">${week.is_complete && canManageShow ? '<button class="secondary" id="weekLedger">Week ledger</button>' : ''}${editable ? `<button id="newDance">Add Dance</button>${supportsCompletion ? '<button class="secondary" id="completeWeek">Mark Complete</button>' : ''}` : ''}</div>`}</div>
-    ${weekEditing ? '<p class="reorder-hint">Drag the handles to match the show order, then save the week. Arrow keys also move a focused handle.</p>' : ''}<div class="dance-list ${weekEditing ? 'reorder-mode' : ''}">${dances.length ? dances.map((dance, index) => { const scores = scoresForDance(dance.id); const details = [dance.dance_type, dance.song].filter(Boolean).map(escapeHtml); const title = escapeHtml(labelForDance(dance, index)); const scoreStatus = dance.kind === 'competitive' && scores.length < 3 + (week.guest_judge_name ? 1 : 0) ? `<span class="dance-score-pending">${scores.length ? `${scores.length} judge scores entered` : 'Awaiting scores'}</span>` : ''; return `<article class="card dance-row dance-${dance.kind}" ${weekEditing ? `data-reorder-id="${dance.id}"` : `data-dance-detail="${dance.id}" tabindex="0" role="button" aria-label="View details for ${title}"`}><div class="dance-card-top">${weekEditing ? `<button type="button" class="dance-drag-handle" aria-label="Move ${title}" title="Drag to reorder">☰</button>` : ''}<div class="dance-card-info"><p class="eyebrow">${dance.kind === 'competitive' ? 'Competitive dance' : 'Performance'}</p><h3>${title}</h3>${weekEditing ? `<p class="reorder-detail">${escapeHtml([dance.dance_type, dance.song].filter(Boolean).join(' · '))}${scoreStatus}</p>` : ''}</div>${editable ? `<button class="secondary" data-edit-dance="${dance.id}">Edit</button>` : !weekEditing ? '<span class="card-chevron" aria-hidden="true">›</span>' : ''}</div>${!weekEditing && dance.kind === 'competitive' ? `<div class="dance-details"><span>${details[0] || 'Dance type not set'}</span>${details[1] ? `<span>${details[1]}</span>` : ''}</div><div class="score-desk-judge-scores" aria-label="Judge scores">${scores.map((score) => `<span><b>${escapeHtml(score.judge_name)}</b> ${Number(score.score)}</span>`).join('')}${scores.length ? `<strong>${scores.reduce((sum, score) => sum + Number(score.score || 0), 0)} total</strong>` : ''}${scoreStatus}</div>` : ''}${weekEditing ? '' : appearanceSummary(dance.id)}</article>`; }).join('') : '<div class="card empty">No dances entered for this week.</div>'}</div>`;
+    ${weekEditing ? '<p class="reorder-hint">Drag the handles to match the show order, then save the week. Arrow keys also move a focused handle.</p>' : ''}<div class="dance-list ${weekEditing ? 'reorder-mode' : ''}">${dances.length ? dances.map((dance, index) => { const scores = scoresForDance(dance.id); const details = [dance.dance_type, danceSongLabel(dance)].filter(Boolean).map(escapeHtml); const title = escapeHtml(labelForDance(dance, index)); const scoreStatus = dance.kind === 'competitive' && scores.length < 3 + (week.guest_judge_name ? 1 : 0) ? `<span class="dance-score-pending">${scores.length ? `${scores.length} judge scores entered` : 'Awaiting scores'}</span>` : ''; return `<article class="card dance-row dance-${dance.kind}" ${weekEditing ? `data-reorder-id="${dance.id}"` : `data-dance-detail="${dance.id}" tabindex="0" role="button" aria-label="View details for ${title}"`}><div class="dance-card-top">${weekEditing ? `<button type="button" class="dance-drag-handle" aria-label="Move ${title}" title="Drag to reorder">☰</button>` : ''}<div class="dance-card-info"><p class="eyebrow">${dance.kind === 'competitive' ? 'Competitive dance' : 'Performance'}</p><h3>${title}</h3>${weekEditing ? `<p class="reorder-detail">${escapeHtml([dance.dance_type, danceSongLabel(dance)].filter(Boolean).join(' · '))}${scoreStatus}</p>` : ''}</div>${editable ? `<button class="secondary" data-edit-dance="${dance.id}">Edit</button>` : !weekEditing ? '<span class="card-chevron" aria-hidden="true">›</span>' : ''}</div>${!weekEditing && dance.kind === 'competitive' ? `<div class="dance-details"><span>${details[0] || 'Dance type not set'}</span>${details[1] ? `<span>${details[1]}</span>` : ''}</div><div class="score-desk-judge-scores" aria-label="Judge scores">${scores.map((score) => `<span><b>${escapeHtml(score.judge_name)}</b> ${Number(score.score)}</span>`).join('')}${scores.length ? `<strong>${scores.reduce((sum, score) => sum + Number(score.score || 0), 0)} total</strong>` : ''}${scoreStatus}</div>` : ''}${weekEditing ? '' : appearanceSummary(dance.id)}</article>`; }).join('') : '<div class="card empty">No dances entered for this week.</div>'}</div>`;
   if (isScoreDeskSurface && canManageShow) {
     if (weekEditing) $('#scoreDeskContent .week-heading').insertAdjacentHTML('beforeend', automationFields(automationData, week.guest_judge_name));
     $('#scoreDeskContent .score-week-head').insertAdjacentHTML('afterend', `<div id="weekAutomationStatus">${automationStatus(automationData, week)}</div>`);
@@ -1487,8 +1487,8 @@ async function loadScoreDesk() {
   dances.forEach((dance) => {
     const card = [...document.querySelectorAll('#scoreDeskContent [data-dance-detail]')]
       .find((item) => item.dataset.danceDetail === dance.id);
-    if (card && dance.kind === 'performance' && (dance.performance_type || dance.song || dance.choreography)) {
-      card.querySelector('.dance-card-top')?.insertAdjacentHTML('afterend', `<div class="dance-performance-details">${dance.performance_type ? `<span>${escapeHtml(dance.performance_type)}</span>` : ''}${dance.song ? `<span>${escapeHtml(dance.song)}</span>` : ''}${dance.choreography ? `<span>Choreographer(s): ${escapeHtml(dance.choreography)}</span>` : ''}</div>`);
+    if (card && dance.kind === 'performance' && (dance.performance_type || danceSongLabel(dance) || dance.choreography)) {
+      card.querySelector('.dance-card-top')?.insertAdjacentHTML('afterend', `<div class="dance-performance-details">${dance.performance_type ? `<span>${escapeHtml(dance.performance_type)}</span>` : ''}${danceSongLabel(dance) ? `<span>${escapeHtml(danceSongLabel(dance))}</span>` : ''}${dance.choreography ? `<span>Choreographer(s): ${escapeHtml(dance.choreography)}</span>` : ''}</div>`);
     }
     if (card && week.second_air_date) {
       card.querySelector('.dance-card-top')?.insertAdjacentHTML('afterend', `<p class="sub dance-airing-night">${dance.airing_night ? `Night ${Number(dance.airing_night)}` : 'Airing night not set'}</p>`);
@@ -1538,7 +1538,7 @@ function openDanceDetail(week, dance, index, pairData, scores, cast, context = {
   detailRows.forEach((row) => { if (row.teamId) teamTotals.set(row.teamName, (teamTotals.get(row.teamName) || 0) + row.points); });
   const teamLeaders = [...teamTotals].sort((a, b) => b[1] - a[1]);
   const sortedRows = [...detailRows].sort((a, b) => b.points - a.points || a.member.name.localeCompare(b.member.name));
-  openModal(`${context.backAction ? '<div class="modal-back-row"><button class="profile-back-button secondary" id="danceBackToProfile" type="button" aria-label="Back to profile">← Back</button></div>' : ''}${danceDetail({ kind: dance.kind, title, danceType: dance.dance_type, performanceType: dance.performance_type, song: dance.song, choreography: dance.choreography,
+  openModal(`${context.backAction ? '<div class="modal-back-row"><button class="profile-back-button secondary" id="danceBackToProfile" type="button" aria-label="Back to profile">← Back</button></div>' : ''}${danceDetail({ kind: dance.kind, title, danceType: dance.dance_type, performanceType: dance.performance_type, songTitle: dance.song_title, songArtist: dance.song_artist, choreography: dance.choreography,
     scores, scoreImage: judgeScoreImage, judgePhoto: isScoreDeskSurface ? null : judgePhotoImage,
     judgeMember: isScoreDeskSurface ? null : (name) => judgeMemberFor(name, pairData.players),
     photos: danceImagesFor(week.number, title, dance.airing_night).map(danceAsset),
@@ -1830,7 +1830,7 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
     ? { data: [], error: null }
     : await db.from('dance_types').select('name').order('name');
   if (danceTypeError) return alert(`Couldn’t load dance types: ${danceTypeError.message}. Run the dance-type SQL update first.`);
-  const existingSong = splitDanceSong(existingDance?.song);
+  const existingSong = danceSongParts(existingDance);
   const existingType = splitDanceType(existingDance?.dance_type);
   const activePairs = partnerships.filter((pairing) => {
     const star = players.find((player) => player.id === pairing.star_id); const pro = players.find((player) => player.id === pairing.pro_id);
@@ -1896,7 +1896,9 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
     const dance_type = kind === 'competitive'
       ? scoresOnly ? existingDance.dance_type : joinDanceType(selectedType, fusionFirst, fusionSecond)
       : null;
-    const song = scoresOnly ? existingDance.song : joinDanceSong($('#danceSongTitle').value, $('#danceSongArtist').value) || null;
+    // Keep the current atomic-save contract; display and editor values come
+    // exclusively from song_title/song_artist. Score-only edits ignore p_song.
+    const song = scoresOnly ? null : joinDanceSong($('#danceSongTitle').value, $('#danceSongArtist').value) || null;
     if (!scoresOnly && $('#danceSongArtist').value.trim() && !$('#danceSongTitle').value.trim()) return alert('Enter a song title before the artist.');
     const scoreInputs = kind === 'competitive' ? [...document.querySelectorAll('[data-judge]')].filter((input) => input.value !== '') : [];
     if (scoreInputs.some((input) => !Number.isInteger(Number(input.value)) || Number(input.value) < 0 || Number(input.value) > 10)) return alert('Select a judge score from 1 to 10.');
@@ -1921,7 +1923,6 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
     if (!atomicSave.error) {
       if (kind === 'performance' || airingNight) {
         const details = kind === 'performance' ? {
-          song,
           choreography: $('#danceChoreography').value.trim() || null,
           performance_type: $('#performanceType').value.trim() || null,
         } : {};

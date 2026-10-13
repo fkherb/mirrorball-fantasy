@@ -1,13 +1,18 @@
-// Songs are still stored as one value so existing dances and database writes
-// remain compatible. Editors and cards can treat the two parts separately.
-export function splitDanceSong(value) {
-  const song = String(value || '').trim();
-  const separator = song.lastIndexOf(' by ');
-  return separator > 0
-    ? { title: song.slice(0, separator).trim(), artist: song.slice(separator + 4).trim() }
-    : { title: song, artist: '' };
+// Read the database's separate fields, never parse or fall back to dances.song.
+export function danceSongParts(dance = {}) {
+  return {
+    title: String(dance?.song_title ?? '').trim(),
+    artist: String(dance?.song_artist ?? '').trim(),
+  };
 }
 
+export function danceSongLabel(dance) {
+  const { title, artist } = danceSongParts(dance);
+  return title ? joinDanceSong(title, artist) : artist;
+}
+
+// Formatting only. The current save_dance_atomic RPC still accepts p_song;
+// its database trigger fills song_title/song_artist and refreshes music matches.
 export function joinDanceSong(title, artist) {
   const cleanTitle = String(title || '').trim();
   const cleanArtist = String(artist || '').trim();

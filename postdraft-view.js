@@ -1,4 +1,4 @@
-import { splitDanceSong } from './dance-song.js?v=20260930-avatar-polish-v79';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-song-fields-v104';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
@@ -202,9 +202,11 @@ function danceResultRing(value, caption, label, amount, maximum) {
   return `<span class="dance-result-ring" role="img" aria-label="${html(label)}" title="${html(label)}"><span class="prediction-ring prediction-ring-small" style="--ring-value:${percent}%;--ring-color:#6d4c76"><strong>${html(value)}</strong></span><small>${html(caption)}</small></span>`;
 }
 
-export function danceCard({ id, kind, title, shortTitle = '', danceType, performanceType, song, choreography, scores, castNames = [], castMembers = [], imageFor = null, scoreImage, judgePhoto, judgeMember, photos = [], cardPhoto = '', placeholderPhoto = '', placeholderStyle = '', poster = false, pending = false, editButton = false, weeklyPrediction = null, airingNight = null, weekNumber = null, complete = true, guestJudge = false }) {
+export function danceCard({ id, kind, title, shortTitle = '', danceType, performanceType, songTitle, songArtist, choreography, scores, castNames = [], castMembers = [], imageFor = null, scoreImage, judgePhoto, judgeMember, photos = [], cardPhoto = '', placeholderPhoto = '', placeholderStyle = '', poster = false, pending = false, editButton = false, weeklyPrediction = null, airingNight = null, weekNumber = null, complete = true, guestJudge = false }) {
   const total = scores.reduce((sum, score) => sum + Number(score.score || 0), 0);
-  const songParts = splitDanceSong(song);
+  const songFields = { song_title: songTitle, song_artist: songArtist };
+  const songParts = danceSongParts(songFields);
+  const song = danceSongLabel(songFields);
   const art = photos.length
     ? `<div class="dance-card-photo"><img class="dance-photo-backdrop" src="${html(cardPhoto || photos[0])}" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="dance-photo-main" src="${html(cardPhoto || photos[0])}" alt="${html(title)} performing" loading="lazy" decoding="async"><span>${photos.length} photo${photos.length === 1 ? '' : 's'}</span></div>`
     : placeholderPhoto ? `<div class="dance-card-photo is-couple-placeholder"><img class="dance-photo-backdrop" src="${html(placeholderPhoto)}" alt="" aria-hidden="true" loading="lazy" decoding="async"><img class="dance-photo-main dance-couple-placeholder" src="${html(placeholderPhoto)}" style="${html(placeholderStyle)}" alt="${html(title)} couple portrait" loading="lazy" decoding="async"></div>`
@@ -337,7 +339,8 @@ export function castProfile({ member, image, role, teamName, fantasyPoints, judg
   return `${backButton}<div class="cast-profile-hero"><img src="${html(image)}" style="object-position:${imagePosition(member.image_position)}% center" alt="${html(member.name)}"><div class="cast-profile-intro"><p class="eyebrow">${html(role)}</p><h2>${html(member.name)}</h2>${partnershipSubtitle}</div><div class="cast-profile-controls"><div class="cast-profile-desktop-row">${desktopTeam}${desktopPartner}${predictions.desktop}</div><div class="cast-profile-control-row"><div class="cast-profile-meta">${teamCard}${partnerCard}</div>${predictions.main}</div></div>${eliminated}</div><span class="cast-market-list-home" hidden></span>${predictions.expanded}${stats}${pointsNote ? `<p class="cast-profile-points-note">${html(pointsNote)}</p>` : ''}${biography}${profileDetails}${predictionFootnote}`;
 }
 
-export function danceDetail({ kind, title, danceType, performanceType, song, choreography, scores, scoreImage, judgePhoto, judgeMember, teams, castRows, imageFor, photos = [], placeholderPhoto = '', weekNumber = null, airingNight = null, weeklyPrediction = null }) {
+export function danceDetail({ kind, title, danceType, performanceType, songTitle, songArtist, choreography, scores, scoreImage, judgePhoto, judgeMember, teams, castRows, imageFor, photos = [], placeholderPhoto = '', weekNumber = null, airingNight = null, weeklyPrediction = null }) {
+  const song = danceSongLabel({ song_title: songTitle, song_artist: songArtist });
   const total = scores.reduce((sum, score) => sum + Number(score.score || 0), 0);
   const best = teams[0]?.points || 0;
   const leaders = best ? teams.filter((team) => team.points === best).map((team) => team.name) : [];

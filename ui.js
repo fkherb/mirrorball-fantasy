@@ -1,5 +1,5 @@
-import { db } from './supabase-client.js?v=20261011-uniform-auth-v103';
-import { prepareProfilePicture } from './profile-picture.js?v=20261011-uniform-auth-v103';
+import { db } from './supabase-client.js?v=20261013-song-fields-v104';
+import { prepareProfilePicture } from './profile-picture.js?v=20261013-song-fields-v104';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const buttons = [...document.querySelectorAll('nav button[data-view]')];
