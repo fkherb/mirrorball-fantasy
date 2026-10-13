@@ -1,5 +1,5 @@
-import { db } from './supabase-client.js?v=20261013-canonical-songs-styles-v105';
-import { prepareProfilePicture } from './profile-picture.js?v=20261013-canonical-songs-styles-v105';
+import { db } from './supabase-client.js?v=20261013-guest-judge-v106';
+import { prepareProfilePicture } from './profile-picture.js?v=20261013-guest-judge-v106';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const buttons = [...document.querySelectorAll('nav button[data-view]')];

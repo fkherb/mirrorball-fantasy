@@ -68,3 +68,8 @@ assert.equal(query(`select count(*) from public.dances where song is distinct fr
 assert.equal(query(`select count(*) from public.dances d join public.weeks w on w.id=d.week_id
   where w.number=5 and d.kind='competitive' and d.song_title is not null and d.song_artist='Artist' and d.song_confirmed;`),'11');
 console.log('Canonical song fields, new style catalog, Fusion, free-text performances, compatibility, music races, authorization, rollback, rerun preservation, and full Wiki automation verified in isolated PostgreSQL.');
+const guestPanel=await file('supabase/migrations/20261013212637_week_five_guest_judge_panel.sql');
+query(guestPanel);
+query(guestPanel);
+query(await file('scripts/tests/guest-judge-panel.sql'));
+console.log('Guest panel: Joe third, Bruno fourth, all four scores visible then confirmed, public order, no cast additions, and rerun safety verified.');

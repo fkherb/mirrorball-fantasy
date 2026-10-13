@@ -12,7 +12,7 @@ const atomicDanceSql = await readFile(new URL('../supabase/atomic-dance-saves-an
 assert.doesNotMatch(app, /readOnlyCards|danceCardPhotoFor/, 'Score Desk must not render the public photo cards.');
 assert.match(app, /dances\.length \? dances\.map\(/, 'All weeks need the compact Score Desk dance rows.');
 assert.match(app, /score-desk-judge-scores/, 'Score Desk needs readable text scores.');
-assert.match(app, /judgePhoto: isScoreDeskSurface \? null : judgePhotoImage/, 'Portraits belong on the public dance page.');
+assert.match(app, /judgePhoto: isScoreDeskSurface \? null : \(name\) => judgePortraitFor\(name, assetRoot, week\)/, 'Public portraits must use the selected week’s guest photo.');
 assert.match(app, /prepareNextWeekCompetitiveDances\(previousWeek, week, dances\)/,
   'Opening an eligible next week should prepare its missing competitive cards.');
 assert.match(app, /prepareNextWeekCompetitiveDances\(\{ \.\.\.week, is_complete: true \}, nextWeek, existingDances \|\| \[\]\)/,

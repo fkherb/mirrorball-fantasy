@@ -25,6 +25,7 @@ jobs:
       - run: node scripts/check-market-history-backfill.mjs
       - run: node scripts/check-airing-policy.mjs
       - run: node scripts/check-postdraft-view.mjs
+      - run: node scripts/check-guest-judge-panel.mjs
       - run: node scripts/check-dance-song-fields.mjs
       - run: node scripts/check-dance-style-migration.mjs
       - run: node --experimental-strip-types scripts/check-dance-music-matches.mjs

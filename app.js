@@ -1,16 +1,17 @@
-import { db } from './supabase-client.js?v=20261013-canonical-songs-styles-v105';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-canonical-songs-styles-v105';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-canonical-songs-styles-v105';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-canonical-songs-styles-v105';
-import { loadMarketPredictions } from './market-predictions.js?v=20261013-canonical-songs-styles-v105';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-canonical-songs-styles-v105';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-canonical-songs-styles-v105';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-canonical-songs-styles-v105';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-canonical-songs-styles-v105';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-canonical-songs-styles-v105';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-canonical-songs-styles-v105';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-canonical-songs-styles-v105';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-canonical-songs-styles-v105';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261013-guest-judge-v106';
+import { db } from './supabase-client.js?v=20261013-guest-judge-v106';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-guest-judge-v106';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-guest-judge-v106';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-guest-judge-v106';
+import { loadMarketPredictions } from './market-predictions.js?v=20261013-guest-judge-v106';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-guest-judge-v106';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-guest-judge-v106';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-guest-judge-v106';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-guest-judge-v106';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-guest-judge-v106';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-guest-judge-v106';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-guest-judge-v106';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-guest-judge-v106';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -50,7 +51,6 @@ const canHaveMirrorballWins = (role, isHough = false) => ['Pro', 'Eliminated Pro
 const oppositeRole = (role) => role === 'Star' ? 'Pro' : 'Star';
 const activePairRole = (role) => role.includes('Star') ? 'Star' : role.includes('Pro') ? 'Pro' : role;
 const judgeScoreImage = (score) => `${assetRoot}Images/Judges Scores/${score}.png?v=20260921-optimized`;
-const judgePhotoImage = (name) => judgePortraitFor(name, assetRoot);
 let canEdit = false;
 let canManageShow = false;
 let canManageCast = false;
@@ -1407,8 +1407,7 @@ async function loadScoreDesk() {
   }
   const pairData = pairResult.data;
   const danceDetailContext = { roles: roleResult.data || [], snapshots: snapshotResult.data || [], predictions };
-  const judgeOrder = ['Carrie Ann', 'Derek', 'Bruno', ...(week.guest_judge_name ? [week.guest_judge_name] : [])];
-  const scoresForDance = (danceId) => judgeScores.filter((score) => score.dance_id === danceId).sort((a, b) => judgeOrder.indexOf(a.judge_name) - judgeOrder.indexOf(b.judge_name));
+  const scoresForDance = (danceId) => sortJudgeScores(judgeScores.filter((score) => score.dance_id === danceId), week);
   const labelForDance = (dance, index) => {
     if (dance.kind === 'performance') return dance.name || `Week ${week.number} Dance ${index + 1}`;
     const pairing = pairData.partnerships.find((item) => item.id === dance.partnership_id);
@@ -1539,7 +1538,7 @@ function openDanceDetail(week, dance, index, pairData, scores, cast, context = {
   const teamLeaders = [...teamTotals].sort((a, b) => b[1] - a[1]);
   const sortedRows = [...detailRows].sort((a, b) => b.points - a.points || a.member.name.localeCompare(b.member.name));
   openModal(`${context.backAction ? '<div class="modal-back-row"><button class="profile-back-button secondary" id="danceBackToProfile" type="button" aria-label="Back to profile">← Back</button></div>' : ''}${danceDetail({ kind: dance.kind, title, danceType: dance.dance_type, performanceType: dance.performance_type, songTitle: dance.song_title, songArtist: dance.song_artist, choreography: dance.choreography,
-    scores, scoreImage: judgeScoreImage, judgePhoto: isScoreDeskSurface ? null : judgePhotoImage,
+    scores, week, scoreImage: judgeScoreImage, judgePhoto: isScoreDeskSurface ? null : (name) => judgePortraitFor(name, assetRoot, week),
     judgeMember: isScoreDeskSurface ? null : (name) => judgeMemberFor(name, pairData.players),
     photos: danceImagesFor(week.number, title, dance.airing_night).map(danceAsset),
     placeholderPhoto: !isScoreDeskSurface && dance.kind === 'competitive' ? danceAsset(couplePhotoFor(title)) : '',
@@ -1847,7 +1846,7 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
   });
   const castPicker = (excludedIds = []) => players.filter((player) => !excludedIds.includes(player.id)).map((player) => `<label class="cast-choice" data-dance-cast-name="${escapeHtml(player.name.toLowerCase())}" data-dance-cast-category="${castCategory(player)}" data-dance-bonus-category="${bonusCastCategory(player)}"><input type="checkbox" value="${player.id}" ${existingAppearanceIds.some((appearance) => (appearance.cast_member_id || appearance) === player.id) ? 'checked' : ''}><span><b>${escapeHtml(player.name)}</b><small>${escapeHtml(displayRole(player))}</small></span></label>`).join('');
   const drawForm = (kind) => {
-    const judgeNames = ['Carrie Ann', 'Derek', 'Bruno', ...(week.guest_judge_name ? [week.guest_judge_name] : [])];
+    const judgeNames = judgeOrderFor(week);
     const judgeScoreSelectors = `<div class="judge-grid">${judgeNames.map((judge) => {
       const savedScore = existingScores.find((score) => score.judge_name === judge)?.score;
       const selectedScore = savedScore == null ? '' : String(savedScore);
