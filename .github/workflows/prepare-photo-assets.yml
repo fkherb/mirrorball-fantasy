@@ -5,6 +5,7 @@ on:
     branches: [main]
     paths:
       - 'Images/Dances/Week */**'
+      - 'Videos/Dances/Week */**'
       - 'Images/*.jpg'
       - 'Images/*.jpeg'
       - 'Images/*.png'

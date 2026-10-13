@@ -1,17 +1,17 @@
-import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261013-x-photos-v109';
-import { db } from './supabase-client.js?v=20261013-x-photos-v109';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-x-photos-v109';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-x-photos-v109';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-x-photos-v109';
-import { loadMarketPredictions } from './market-predictions.js?v=20261013-x-photos-v109';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-x-photos-v109';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-x-photos-v109';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-x-photos-v109';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-x-photos-v109';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-x-photos-v109';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-x-photos-v109';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-x-photos-v109';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-x-photos-v109';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261013-dance-videos-v110';
+import { db } from './supabase-client.js?v=20261013-dance-videos-v110';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-dance-videos-v110';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-dance-videos-v110';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-dance-videos-v110';
+import { loadMarketPredictions } from './market-predictions.js?v=20261013-dance-videos-v110';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-dance-videos-v110';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-dance-videos-v110';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-dance-videos-v110';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-dance-videos-v110';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-dance-videos-v110';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-dance-videos-v110';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-dance-videos-v110';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-dance-videos-v110';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -177,6 +177,7 @@ function showRosterMessage(message, isError = false) {
 
 function openModal(contents) {
   const dialog = $('#modal');
+  dialog.querySelectorAll('video').forEach((video) => video.pause());
   $('#modalBody').innerHTML = `<div class="modal">${contents}</div>`;
   dialog.dataset.dirty = 'false';
   if (!dialog.open) dialog.showModal();

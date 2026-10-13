@@ -1,4 +1,6 @@
 import { createHash } from 'node:crypto';
+import { createReadStream } from 'node:fs';
+import { open } from 'node:fs/promises';
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -78,6 +80,31 @@ for (const folder of folders) {
       entries.push({ path: cardPath, sha: hash(cardBytes) });
       recordedCards.add(cardPath);
     }
+  }
+}
+
+// Index videos without transcoding them. Hash hydrated files and LFS pointers
+// identically, so checks work both locally and in a checkout without LFS downloads.
+const videoRoot = new URL('../Videos/Dances/', import.meta.url);
+let videoFolders = [];
+try { videoFolders = await readdir(videoRoot, { withFileTypes: true }); }
+catch (error) { if (error.code !== 'ENOENT') throw error; }
+for (const folder of videoFolders.filter((item) => item.isDirectory() && /^Week \d+$/.test(item.name))) {
+  const directory = new URL(`${encodeURIComponent(folder.name)}/`, videoRoot);
+  for (const filename of (await readdir(directory)).filter((name) => /\.webm$/i.test(name)).sort()) {
+    const video = new URL(encodeURIComponent(filename), directory);
+    const handle = await open(video);
+    let prefix;
+    try { prefix = (await handle.read(Buffer.alloc(512), 0, 512, 0)).buffer.toString('utf8'); }
+    finally { await handle.close(); }
+    const pointer = /^version https:\/\/git-lfs.github.com\/spec\/v1\noid sha256:([a-f0-9]{64})\nsize \d+\n/.exec(prefix);
+    let sha = pointer?.[1];
+    if (!sha) {
+      const digest = createHash('sha256');
+      for await (const chunk of createReadStream(video)) digest.update(chunk);
+      sha = digest.digest('hex');
+    }
+    entries.push({ path: relativePath(video), sha: sha.slice(0, 16) });
   }
 }
 

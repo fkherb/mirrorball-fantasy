@@ -1,7 +1,7 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261013-x-photos-v109';
-import { sortJudgeScores } from './judge-panel.js?v=20261013-x-photos-v109';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261013-dance-videos-v110';
+import { sortJudgeScores } from './judge-panel.js?v=20261013-dance-videos-v110';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
-import { dancePhotoSource } from './dance-images.js?v=20261013-x-photos-v109';
+import { dancePhotoSource, danceVideoFor } from './dance-images.js?v=20261013-dance-videos-v110';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.
@@ -364,15 +364,23 @@ export function castProfile({ member, image, role, teamName, fantasyPoints, judg
   return `${backButton}<div class="cast-profile-hero"><img src="${html(image)}" style="object-position:${imagePosition(member.image_position)}% center" alt="${html(member.name)}"><div class="cast-profile-intro"><p class="eyebrow">${html(role)}</p><h2>${html(member.name)}</h2>${partnershipSubtitle}</div><div class="cast-profile-controls"><div class="cast-profile-desktop-row">${desktopTeam}${desktopPartner}${predictions.desktop}</div><div class="cast-profile-control-row"><div class="cast-profile-meta">${teamCard}${partnerCard}</div>${predictions.main}</div></div>${eliminated}</div><span class="cast-market-list-home" hidden></span>${predictions.expanded}${stats}${pointsNote ? `<p class="cast-profile-points-note">${html(pointsNote)}</p>` : ''}${biography}${profileDetails}${predictionFootnote}`;
 }
 
-export function danceDetail({ kind, title, danceType, performanceType, songTitle, songArtist, choreography, scores, scoreImage, judgePhoto, judgeMember, teams, castRows, imageFor, photos = [], placeholderPhoto = '', weekNumber = null, airingNight = null, weeklyPrediction = null, week = {} }) {
+export function danceGallery({ title, photos = [], placeholderPhoto = '', video = '' }) {
+  const firstPhoto = photos[0] || (!video ? placeholderPhoto : '');
+  if (!firstPhoto && !video) return '';
+  const photoItems = photos.map((photo, index) => `<button type="button" data-dance-gallery-photo="${html(photo)}" aria-label="Show photo ${index + 1} of ${photos.length}" aria-pressed="${index === 0}" class="${index === 0 ? 'selected' : ''}"><img src="${html(photo)}" alt="" loading="lazy"></button>`).join('');
+  const videoItem = video ? `<button type="button" data-dance-gallery-video aria-label="Show dance video" aria-pressed="${!firstPhoto}" class="dance-gallery-video-thumb ${!firstPhoto ? 'selected' : ''}"><span aria-hidden="true">▶</span><small>Video</small></button>` : '';
+  const rail = photos.length + (video ? 1 : 0) > 1 ? `<div class="dance-gallery-rail" role="group" aria-label="Performance photos and video">${photoItems}${videoItem}</div>` : '';
+  return `<div class="dance-detail-gallery"><div class="dance-gallery-stage"><img class="dance-gallery-backdrop"${firstPhoto ? ` src="${html(firstPhoto)}"` : ' hidden'} alt="" aria-hidden="true" decoding="async"><img class="dance-gallery-main"${firstPhoto ? ` src="${html(firstPhoto)}"` : ' hidden'} alt="${html(title)} ${photos.length ? 'performing' : 'couple portrait'}" decoding="async">${video ? `<video class="dance-gallery-video" data-src="${html(video)}" controls playsinline preload="none" aria-label="${html(title)} dance video"${firstPhoto ? ' hidden' : ''}${photos[0] || placeholderPhoto ? ` poster="${html(photos[0] || placeholderPhoto)}"` : ''}></video>` : ''}</div>${rail}${video ? `<p class="dance-gallery-video-error" hidden>This WebM video couldn’t play here. <a href="${html(video)}" target="_blank" rel="noopener noreferrer">Open video</a></p>` : ''}</div>`;
+}
+
+export function danceDetail({ kind, title, danceType, performanceType, songTitle, songArtist, choreography, scores, scoreImage, judgePhoto, judgeMember, teams, castRows, imageFor, photos = [], placeholderPhoto = '', weekNumber = null, airingNight = null, weeklyPrediction = null, week = {}, video = null }) {
   scores = sortJudgeScores(scores, week);
   const song = danceSongLabel({ song_title: songTitle, song_artist: songArtist });
   const medley = danceMedleyDetail({ song_title: songTitle, song_artist: songArtist });
   const total = scores.reduce((sum, score) => sum + Number(score.score || 0), 0);
   const best = teams[0]?.points || 0;
   const leaders = best ? teams.filter((team) => team.points === best).map((team) => team.name) : [];
-  const galleryPhoto = photos[0] || placeholderPhoto;
-  const gallery = galleryPhoto ? `<div class="dance-detail-gallery"><div class="dance-gallery-stage"><img class="dance-gallery-backdrop" src="${html(galleryPhoto)}" alt="" aria-hidden="true" decoding="async"><img class="dance-gallery-main" src="${html(galleryPhoto)}" alt="${html(title)} ${photos.length ? 'performing' : 'couple portrait'}" decoding="async"></div>${photos.length > 1 ? `<div class="dance-gallery-rail" role="group" aria-label="Performance photos">${photos.map((photo, index) => `<button type="button" data-dance-gallery-photo="${html(photo)}" aria-label="Show photo ${index + 1} of ${photos.length}" aria-pressed="${index === 0}" class="${index === 0 ? 'selected' : ''}"><img src="${html(photo)}" alt="" loading="lazy"></button>`).join('')}</div>` : ''}</div>` : '';
+  const gallery = danceGallery({ title, photos, placeholderPhoto, video: video ?? danceVideoFor(weekNumber, title, airingNight) });
   const prediction = kind === 'competitive' && weeklyPrediction
     ? `<section class="dance-detail-market">${predictionRing(weeklyPrediction.percent, 'risk', '', weeklyPrediction.relative_position)}<span class="prediction-label"><small>${weekNumber ? `Week ${Number(weekNumber)}` : 'Weekly'}</small><strong>Elimination</strong></span></section>` : '';
   return `<div class="dance-detail">${gallery}<div class="dance-detail-content"><div class="dance-detail-head"><p class="eyebrow">${weekNumber ? `Week ${Number(weekNumber)} · ` : ''}${[1, 2].includes(Number(airingNight)) ? `Night ${Number(airingNight)} · ` : ''}${kind === 'competitive' ? 'Competitive dance' : 'Performance'}</p><h2>${html(title)}</h2><p class="sub">${kind === 'competitive' ? html(danceType || 'Dance type not set') : html(performanceType || 'Special performance')}${song && !medley ? ` · ${html(song)}` : ''}</p>${medley}${kind === 'performance' && choreography ? `<p class="sub">Choreographer(s): ${html(choreography)}</p>` : ''}</div>${prediction}${kind === 'competitive' ? `<section class="detail-section dance-score-section"><div class="detail-section-title"><h3>Judges’ scores</h3><strong>${total || '—'}</strong></div><div class="detail-judges">${scores.map((score) => `<div>${judgeScoreArt(score, scoreImage, judgePhoto, judgeMember, imageFor, week)}<span>${html(score.judge_name)}</span></div>`).join('') || '<p class="sub">No scores entered.</p>'}</div></section>` : ''}${castRows.length && kind === 'competitive' ? `<section class="dance-team-spotlight"><span>Top fantasy team${leaders.length === 1 ? '' : 's'}</span><strong>${html(leaders.join(' & ') || 'No points recorded')}</strong><small>${best ? `${best} point${best === 1 ? '' : 's'} earned from this dance` : 'Fantasy impact will appear when scoring is available.'}</small></section>` : ''}<section class="detail-section"><div class="detail-section-title"><h3>Cast & fantasy impact</h3>${castRows.length ? `<span>${castRows.length} cast member${castRows.length === 1 ? '' : 's'}</span>` : ''}</div>${castRows.length ? `<div class="dance-cast-impact-list">${castRows.map((row) => `<button type="button" data-dance-cast-profile="${html(row.member.id)}"><img src="${html(imageFor(row.member))}" style="object-position:${imagePosition(row.member.image_position)}% center" alt=""><span><b>${html(row.member.name)}</b><small>${html(row.role)} · ${html(row.teamName)}</small></span><strong>${row.points ? `+${row.points}` : '—'}</strong><i aria-hidden="true">›</i></button>`).join('')}</div>` : '<p class="sub">No cast appearances were recorded for this dance.</p>'}</section>${prediction ? predictionNote : ''}</div></div>`;
@@ -381,6 +389,8 @@ export function danceDetail({ kind, title, danceType, performanceType, songTitle
 export function bindDanceGallery(container) {
   const stage = container.querySelector('.dance-gallery-main');
   const backdrop = container.querySelector('.dance-gallery-backdrop');
+  const video = container.querySelector('.dance-gallery-video');
+  const videoError = container.querySelector('.dance-gallery-video-error');
   if (!stage) return;
   const credit = container.ownerDocument.createElement('p');
   credit.className = 'dance-photo-credit';
@@ -392,7 +402,7 @@ export function bindDanceGallery(container) {
     credit.hidden = true;
     credit.replaceChildren();
     const source = await dancePhotoSource(stage.src);
-    if (!source || request !== sourceRequest) return;
+    if (!source || request !== sourceRequest || stage.hidden) return;
     const link = container.ownerDocument.createElement('a');
     link.href = source.post_url;
     link.target = '_blank';
@@ -403,12 +413,38 @@ export function bindDanceGallery(container) {
     if (!Number.isNaN(date.valueOf())) credit.append(` · ${date.toLocaleDateString()}`);
     credit.hidden = false;
   };
-  void updateCredit();
-  container.querySelectorAll('[data-dance-gallery-photo]').forEach((button) => button.addEventListener('click', () => {
-    stage.src = button.dataset.danceGalleryPhoto;
-    backdrop.src = stage.src;
-    void updateCredit();
-    container.querySelectorAll('[data-dance-gallery-photo]').forEach((item) => {
+  const showVideo = () => {
+    if (!video) return;
+    stage.hidden = backdrop.hidden = true;
+    credit.hidden = true;
+    sourceRequest += 1;
+    video.hidden = false;
+    if (!video.getAttribute('src')) video.src = video.dataset.src;
+    // Playback remains a user action through the native controls.
+  };
+  if (video) {
+    video.addEventListener('error', () => { videoError.hidden = video.hidden; });
+    if (!video.hidden) showVideo();
+    const dialog = container.closest('dialog');
+    if (dialog && !dialog.dataset.pauseDanceVideosBound) {
+      dialog.dataset.pauseDanceVideosBound = 'true';
+      dialog.addEventListener('close', () => dialog.querySelectorAll('video').forEach((item) => item.pause()));
+    }
+  }
+  if (!stage.hidden) void updateCredit();
+  const buttons = container.querySelectorAll('[data-dance-gallery-photo], [data-dance-gallery-video]');
+  buttons.forEach((button) => button.addEventListener('click', () => {
+    if (button.hasAttribute('data-dance-gallery-video')) {
+      showVideo();
+      videoError.hidden = !video.error;
+    } else {
+      if (video) { video.pause(); video.hidden = true; videoError.hidden = true; }
+      stage.hidden = backdrop.hidden = false;
+      stage.src = button.dataset.danceGalleryPhoto;
+      backdrop.src = stage.src;
+      void updateCredit();
+    }
+    buttons.forEach((item) => {
       const selected = item === button;
       item.classList.toggle('selected', selected);
       item.setAttribute('aria-pressed', String(selected));
