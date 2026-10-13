@@ -14,12 +14,14 @@ class WorkerTests(unittest.TestCase):
         self.tmp = tempfile.TemporaryDirectory()
         self.addCleanup(self.tmp.cleanup)
         self.w = worker.Worker({'SUPABASE_URL': 'https://example.supabase.co',
-            'DWTS_AUTOMATION_WORKER_SECRET': 's' * 48, 'DWTS_PHOTOS_GITHUB_TOKEN': 'private-token'},
+            'DWTS_AUTOMATION_WORKER_SECRET': 's' * 48, 'DWTS_PHOTOS_GITHUB_TOKEN': 'private-token',
+            'DWTS_X_BEARER_TOKEN': 'private-x-token'},
             Path(self.tmp.name))
 
     def test_durable_redacted_outbox_and_retry(self):
-        path = self.w.persist('run', {'error': 'private-token ' + 's' * 48})
+        path = self.w.persist('run', {'error': 'private-token private-x-token ' + 's' * 48})
         self.assertNotIn('private-token', path.read_text())
+        self.assertNotIn('private-x-token', path.read_text())
         self.assertEqual(path.stat().st_mode & 0o777, 0o600)
         with patch.object(self.w, 'api', side_effect=worker.ApiError(503, 'offline')):
             with self.assertRaises(worker.ApiError):
@@ -47,12 +49,13 @@ class WorkerTests(unittest.TestCase):
         photos = self.w.photos
         couple = {'star_name': 'Amber Glenn', 'pro_name': 'Pasha Pashkov'}
         post = {'id_str': '123', 'created_at': 'Tue Oct 06 20:30:00 +0000 2026',
-            'full_text': 'Amber Glenn Pasha Pashkov'}
+            'full_text': 'Amber Glenn Pasha Pashkov', 'source_created_at': '2026-10-06T20:30:00Z',
+            'media': [{'type': 'photo', 'url': 'https://pbs.twimg.com/media/example.jpg'}]}
         local = Path(self.tmp.name) / 'photo.jpg'
         local.write_bytes(b'image fixture')
         with patch.object(photos, 'fetch_posts', return_value=[post, {**post, 'id_str': '124'}]), \
              patch.object(photos, 'remote_files', return_value=[]), \
-             patch.object(photos, 'download', return_value=[local]) as download, \
+             patch.object(photos, 'download_api_photos', return_value=[local]) as download, \
              patch.object(photos, 'commit_files', return_value='a' * 40), \
              patch.object(photos, 'load_state') as load, patch.object(photos, 'save_state') as save:
             result = photos.run(4, [couple], 'token', since='2026-10-06', external_state={'downloaded': {}})

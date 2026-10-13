@@ -9,7 +9,8 @@ Usage:
 {"Amber Glenn": "Pasha Pashkov"}, or a list of star_name/pro_name objects.
 Both FULL names must occur in a post caption, as in the original photo script.
 remaining_couples can be fed directly back into --couples on the next run.
-The token may be supplied through DWTS_PHOTOS_GITHUB_TOKEN in the adjacent .env.
+Tokens are read from DWTS_PHOTOS_GITHUB_TOKEN and DWTS_X_BEARER_TOKEN in .env.
+Reads use the official X API; photos download directly from its media URLs.
 
 Dry runs read the timeline, repository, and existing state, but do not download,
 upload, or save state. Planned matches do not count as successful uploads.
@@ -34,7 +35,7 @@ import unicodedata
 import urllib.error
 import urllib.parse
 import urllib.request
-from datetime import datetime
+from datetime import datetime, timezone
 from email.utils import parsedate_to_datetime
 from pathlib import Path
 
@@ -44,6 +45,9 @@ GITHUB_REPO = DEFAULT_GITHUB_REPO
 BRANCH = "main"
 DANCES_DIR = "Images/Dances"
 HANDLE = "officialdwts"
+# Verified using the official username lookup. Avoid a billable lookup every run.
+X_USER_ID = "16222584"
+MAX_MEDIA_BYTES = 20 * 1024 * 1024
 STATE = Path(os.environ.get("DWTS_STATE", "~/.dwts_photos_state.json")).expanduser()
 IMAGE_EXTS = {".jpg", ".jpeg", ".png", ".webp"}
 RATE_MARKER = "DWTS_GALLERY_RATE_LIMIT:"
@@ -127,20 +131,108 @@ def http_json_or_text(url, token=None, method="GET", body=None, text=False):
         raise
 
 
-def fetch_posts(handle):
-    html = http_json_or_text(
-        f"https://syndication.twitter.com/srv/timeline-profile/screen-name/{handle}", text=True)
-    match = re.search(r'<script[^>]*\bid=[\"\']__NEXT_DATA__[\"\'][^>]*>(.*?)</script>', html, re.S)
-    if not match:
-        raise PhotoError("X did not return the expected timeline data.")
+class NoRedirect(urllib.request.HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        # Never forward an API bearer token to a redirect destination.
+        raise PhotoError("Unexpected redirect from the X API or media host.")
+
+
+def x_request(path, token, params):
+    if not token or not token.strip():
+        raise PhotoError("DWTS_X_BEARER_TOKEN is missing; configure the official X API token in .env.")
+    request = urllib.request.Request("https://api.x.com/2/" + path + "?" + urllib.parse.urlencode(params),
+        headers={"Authorization": "Bearer " + token, "Accept": "application/json",
+                 "User-Agent": "MirrorballPhotoWorker/3.0"})
     try:
-        data = json.loads(match.group(1))
-        entries = data["props"]["pageProps"]["timeline"]["entries"]
-        tweets = [e["content"]["tweet"] for e in entries if e.get("type") == "tweet"]
-        own = [t for t in tweets if not t.get("retweeted_status")]
-        return sorted(own, key=lambda t: int(t["id_str"]), reverse=True)
-    except (ValueError, KeyError, TypeError) as exc:
-        raise PhotoError("X returned an unsupported timeline format.") from exc
+        with urllib.request.build_opener(NoRedirect).open(request, timeout=30) as response:
+            return json.load(response)
+    except urllib.error.HTTPError as exc:
+        if is_rate_limited(exc.code, exc.headers):
+            raise RateLimitError("X API", cooldown_seconds(exc.headers)) from None
+        messages = {401: "Check DWTS_X_BEARER_TOKEN.",
+                    402: "Check X API credits and the spending limit.",
+                    403: "Check the X app's API access and permissions."}
+        # Do not echo response bodies: provider diagnostics may include credentials.
+        raise PhotoError(f"X API HTTP {exc.code}. " + messages.get(exc.code, "Retry on a later scheduled run.")) from None
+
+
+def fetch_posts(handle, token=None, since=None, diagnostics=None):
+    if handle != HANDLE:
+        raise PhotoError("This importer is restricted to @officialdwts.")
+    token = token or os.environ.get("DWTS_X_BEARER_TOKEN", "")
+    params = {"max_results": 20, "exclude": "retweets",
+              "tweet.fields": "created_at,attachments,author_id",
+              "expansions": "attachments.media_keys",
+              "media.fields": "type,url,width,height,alt_text"}
+    if since:
+        params["start_time"] = since.astimezone(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    posts = {}
+    # Bound billed reads; never loop unboundedly through the account's history.
+    for page in range(3):
+        data = x_request(f"users/{X_USER_ID}/tweets", token, params)
+        if diagnostics is not None:
+            diagnostics["api_requests"] += 1
+        if data.get("errors"):
+            raise PhotoError("X API returned incomplete post/media data; no uploads made. Retry later.")
+        media = {m["media_key"]: m for m in data.get("includes", {}).get("media", [])}
+        for post in data.get("data", []):
+            if post.get("author_id") != X_USER_ID:
+                continue
+            created = datetime.fromisoformat(post["created_at"].replace("Z", "+00:00"))
+            attachments = []
+            for key in post.get("attachments", {}).get("media_keys", []):
+                if key not in media:
+                    raise PhotoError("X API omitted an attachment; retry rather than importing an incomplete photo set.")
+                if media[key].get("type") == "photo":
+                    attachments.append(media[key])
+            posts[post["id"]] = {"id_str": post["id"], "full_text": post["text"],
+                "created_at": created.strftime("%a %b %d %H:%M:%S %z %Y"),
+                "media": attachments, "source_created_at": post["created_at"]}
+        next_token = data.get("meta", {}).get("next_token")
+        if not next_token:
+            break
+        params["pagination_token"] = next_token
+    else:
+        if diagnostics is not None:
+            diagnostics["warnings"].append("timeline_page_limit_reached")
+    return sorted(posts.values(), key=lambda post: int(post["id_str"]), reverse=True)
+
+
+def download_api_photos(post, dest, diagnostics=None):
+    """Only download photo attachments, never video previews or scraped pages."""
+    dest = Path(dest)
+    dest.mkdir(parents=True, exist_ok=True)
+    images = []
+    for index, media in enumerate(post.get("media", []), 1):
+        url = urllib.parse.urlsplit(media.get("url", ""))
+        if (url.scheme != "https" or url.netloc != "pbs.twimg.com"
+                or not re.fullmatch(r"/media/[A-Za-z0-9_-]+\.(?:jpg|jpeg|png|webp)", url.path)):
+            raise PhotoError("X returned an unexpected photo URL; download refused.")
+        # Original image resolution; no API/GitHub credentials sent to the CDN.
+        source = urllib.parse.urlunsplit((url.scheme, url.netloc, url.path, "name=orig", ""))
+        request = urllib.request.Request(source, headers={"User-Agent": "MirrorballPhotoWorker/3.0"})
+        try:
+            with urllib.request.build_opener(NoRedirect).open(request, timeout=30) as response:
+                mime = response.headers.get("Content-Type", "").split(";")[0].lower()
+                if mime not in {"image/jpeg", "image/png", "image/webp"}:
+                    raise PhotoError("Photo CDN returned non-image content.")
+                raw = response.read(MAX_MEDIA_BYTES + 1)
+        except urllib.error.HTTPError as exc:
+            if is_rate_limited(exc.code, exc.headers):
+                raise RateLimitError("X photos", cooldown_seconds(exc.headers)) from None
+            raise PhotoError(f"Photo CDN HTTP {exc.code}; no partial photo set uploaded.") from None
+        if len(raw) > MAX_MEDIA_BYTES:
+            raise PhotoError("Photo exceeds the 20 MiB download limit.")
+        signatures = {"image/jpeg": raw.startswith(b"\xff\xd8\xff"),
+                      "image/png": raw.startswith(b"\x89PNG\r\n\x1a\n"),
+                      "image/webp": raw.startswith(b"RIFF") and raw[8:12] == b"WEBP"}
+        if not signatures[mime]:
+            raise PhotoError("Photo content does not match its image type.")
+        extension = {"image/jpeg": ".jpeg", "image/png": ".png", "image/webp": ".webp"}[mime]
+        path = dest / f"photo_{index}{extension}"
+        path.write_bytes(raw)
+        images.append(path)
+    return images
 
 
 def norm(value):
@@ -375,7 +467,7 @@ def new_result(week, couples, dry_run):
             "repository": GITHUB_REPO, "folder": f"{DANCES_DIR}/Week {week}",
             "uploaded_couples": [], "remaining_couples": list(couples),
             "planned_uploads": [], "errors": [],
-            "diagnostics": {"version": 1, "outcome": "not_started",
+            "diagnostics": {"version": 2, "source": "official_x_api", "api_requests": 0, "outcome": "not_started",
                 "requested_couples": len(couples), "reconciled_couples": 0,
                 "timeline_posts": 0, "recent_posts": 0, "before_since_posts": 0,
                 "already_seen_posts": 0, "unmatched_posts": 0, "ambiguous_posts": 0,
@@ -440,7 +532,7 @@ def refresh_remaining(result):
                                   if (c["star_name"], c["pro_name"]) not in successful]
 
 
-def run(week, couples, git_token, since=None, dry_run=False, external_state=None):
+def run(week, couples, git_token, since=None, dry_run=False, external_state=None, x_token=None):
     couples = normalize_couples(couples)
     result = new_result(week, couples, dry_run)
     diagnostics = result["diagnostics"]
@@ -471,7 +563,7 @@ def run(week, couples, git_token, since=None, dry_run=False, external_state=None
         if not targets:
             return finish_diagnostics(result)
         stage = "timeline"
-        posts = fetch_posts(HANDLE)
+        posts = fetch_posts(HANDLE, token=x_token, since=since_time, diagnostics=diagnostics)
         diagnostics["timeline_posts"] = len(posts)
         diagnostics["newest_post_at"] = posts[0]["created_at"] if posts else None
         diagnostics["oldest_post_at"] = posts[-1]["created_at"] if posts else None
@@ -506,6 +598,10 @@ def run(week, couples, git_token, since=None, dry_run=False, external_state=None
                     continue  # One photo-bearing post per couple is sufficient.
                 diagnostics["matched_posts"] += 1
                 url = f"https://x.com/{HANDLE}/status/{pid}"
+                if not post.get("media"):
+                    diagnostics["empty_downloads"] += 1
+                    post_diagnostic(diagnostics, pid, couple, "no_photo_attachments")
+                    continue
                 if dry_run:
                     result["planned_uploads"].append({**couple,
                         "post_url": url, "folder": result["folder"],
@@ -514,7 +610,7 @@ def run(week, couples, git_token, since=None, dry_run=False, external_state=None
                     continue
                 try:
                     diagnostics["download_attempts"] += 1
-                    photos = download(url, Path(tmp) / pid, diagnostics=diagnostics)
+                    photos = download_api_photos(post, Path(tmp) / pid, diagnostics=diagnostics)
                 except RateLimitError as exc:
                     post_diagnostic(diagnostics, pid, couple, "rate_limited")
                     record_error(result, exc, "download", couple)
@@ -530,7 +626,7 @@ def run(week, couples, git_token, since=None, dry_run=False, external_state=None
                 diagnostics["downloaded_images"] += len(photos)
                 post_diagnostic(diagnostics, pid, couple, "images_downloaded", len(photos))
                 number, filenames = next_index(existing, name), []
-                info = uploaded.setdefault(name, {**couple, "files": [], "post_ids": [pid]})
+                info = uploaded.setdefault(name, {**couple, "files": [], "post_ids": [pid], "source_url": url})
                 for photo in photos:
                     extension = ".jpeg" if photo.suffix.lower() in {".jpg", ".jpeg"} else photo.suffix.lower()
                     filename = f"{name}-{number}{extension}"
@@ -538,6 +634,14 @@ def run(week, couples, git_token, since=None, dry_run=False, external_state=None
                     existing.append(filename)
                     filenames.append(filename)
                     staged.append((path, photo))
+                    # Per-image provenance ships in the same atomic commit. No tokens.
+                    source_file = photo.with_name(photo.name + ".source.json")
+                    source_file.write_text(json.dumps({"version": 1, "provider": "X",
+                        "post_id": pid, "post_url": url, "author": HANDLE,
+                        "created_at": post["source_created_at"], "text": post["full_text"],
+                        "image_path": path, "media": post["media"][len(filenames) - 1]},
+                        ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+                    staged.append((path + ".source.json", source_file))
                     info["files"].append(path)
                     number += 1
                 done[pid] = {"couple": name, "week": week, "files": filenames}
@@ -584,7 +688,10 @@ def main(argv=None):
     # Never allow a supplied token to be echoed in an error, subprocess output, etc.
     output = json.dumps(result, ensure_ascii=False, indent=2 if args.pretty else None,
                         separators=None if args.pretty else (",", ":"))
-    print(output.replace(args.git_token, "[REDACTED]") if args.git_token else output)
+    for token in (args.git_token, os.environ.get("DWTS_X_BEARER_TOKEN")):
+        if token:
+            output = output.replace(token, "[REDACTED]")
+    print(output)
     return 1 if result["failed_run"] else 0
 
 

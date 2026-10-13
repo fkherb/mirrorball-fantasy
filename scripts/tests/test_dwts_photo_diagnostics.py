@@ -13,7 +13,8 @@ photos = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(photos)
 COUPLE = {'star_name': 'Amber Glenn', 'pro_name': 'Pasha Pashkov'}
 POST = {'id_str': '123', 'created_at': 'Tue Oct 06 20:30:00 +0000 2026',
-        'full_text': 'Amber Glenn and Pasha Pashkov'}
+        'full_text': 'Amber Glenn and Pasha Pashkov', 'source_created_at': '2026-10-06T20:30:00Z',
+        'media': [{'type': 'photo', 'url': 'https://pbs.twimg.com/media/example.jpg'}]}
 
 
 class PhotoDiagnosticsTests(unittest.TestCase):
@@ -33,7 +34,7 @@ class PhotoDiagnosticsTests(unittest.TestCase):
     def run_fixture(self, posts, files=None, failure=None, dry_run=False):
         with patch.object(photos, 'fetch_posts', side_effect=failure, return_value=posts), \
              patch.object(photos, 'remote_files', return_value=[]), \
-             patch.object(photos, 'download', return_value=files or []), \
+             patch.object(photos, 'download_api_photos', return_value=files or []), \
              patch.object(photos, 'commit_files', return_value='a' * 40) as upload:
             result = photos.run(4, [COUPLE], 'private-token', since='2026-10-06',
                 dry_run=dry_run, external_state={'downloaded': {}})

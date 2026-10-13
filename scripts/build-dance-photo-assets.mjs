@@ -19,6 +19,7 @@ try {
     .map((item) => [item.path, item.sha]));
 } catch { /* First run has no manifest. */ }
 let optimized = 0;
+let photoCount = 0;
 let originalBytes = 0;
 let finalBytes = 0;
 
@@ -32,6 +33,7 @@ for (const folder of folders) {
   if (!checkOnly) await mkdir(cardFolder, { recursive: true });
   const files = (await readdir(sourceFolder)).filter((name) => imagePattern.test(name)).sort();
   for (const filename of files) {
+    photoCount += 1;
     const match = imagePattern.exec(filename);
     const original = new URL(encodeURIComponent(filename), sourceFolder);
     const card = new URL(`${encodeURIComponent(match[1])}-${match[2]}.webp`, cardFolder);
@@ -66,6 +68,11 @@ for (const folder of folders) {
     }
     finalBytes += sourceBytes.length;
     entries.push({ path: relativePath(original), sha: hash(sourceBytes) });
+    const source = new URL(`${encodeURIComponent(filename)}.source.json`, sourceFolder);
+    try {
+      const provenance = await readFile(source);
+      entries.push({ path: relativePath(source), sha: hash(provenance) });
+    } catch (error) { if (error.code !== 'ENOENT') throw error; }
     if (firstForCard) {
       const cardBytes = await readFile(card);
       entries.push({ path: cardPath, sha: hash(cardBytes) });
@@ -77,8 +84,8 @@ for (const folder of folders) {
 const manifest = `${JSON.stringify({ version: 1, entries: entries.sort((a, b) => a.path.localeCompare(b.path)) }, null, 2)}\n`;
 if (checkOnly) {
   if (await readFile(manifestUrl, 'utf8') !== manifest) throw new Error('Dance photo manifest is out of date. Run npm run photos.');
-  console.log(`Verified ${entries.length / 2} dance photos and card thumbnails.`);
+  console.log(`Verified ${photoCount} dance photos and card thumbnails.`);
 } else {
   await writeFile(manifestUrl, manifest);
-  console.log(`Prepared ${entries.length / 2} dance photos; optimized ${optimized}. ${(originalBytes / 1048576).toFixed(1)} MiB → ${(finalBytes / 1048576).toFixed(1)} MiB of originals.`);
+  console.log(`Prepared ${photoCount} dance photos; optimized ${optimized}. ${(originalBytes / 1048576).toFixed(1)} MiB → ${(finalBytes / 1048576).toFixed(1)} MiB of originals.`);
 }

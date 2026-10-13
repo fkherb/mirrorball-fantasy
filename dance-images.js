@@ -114,7 +114,7 @@ export async function refreshDanceImages({ force = false, fetcher = globalThis.f
       const changed = applyPhotos(result.tree);
       failures = 0;
       try { localStorage.setItem(storageKey, JSON.stringify({ entries: result.tree
-        .filter((item) => originalPattern.test(item.path) || cardPattern.test(item.path))
+        .filter((item) => originalPattern.test(item.path) || cardPattern.test(item.path) || /\.source\.json$/.test(item.path))
         .map(({ path, sha }) => ({ path, sha })) })); } catch { /* Optional cache. */ }
       return changed;
     } catch (error) {
@@ -152,4 +152,22 @@ export function danceImagesFor(weekNumber, title, night = null) {
 
 export function danceCardPhotoFor(weekNumber, title, night = null) {
   return uploadedFor(uploadedCards, Number(weekNumber), title, night) || '';
+}
+
+// Only API-imported photos have provenance files; manual uploads are unchanged.
+export async function dancePhotoSource(photo, fetcher = globalThis.fetch) {
+  const entry = knownEntries.find((item) => originalPattern.test(item.path)
+    && photoUrl(item.path, item.sha) === photo);
+  if (!entry) return null;
+  const source = knownEntries.find((item) => item.path === `${entry.path}.source.json`);
+  if (!source) return null;
+  try {
+    const response = await fetcher(photoUrl(source.path, source.sha), { cache: 'no-store' });
+    if (!response.ok) return null;
+    const data = await response.json();
+    if (data.version !== 1 || data.provider !== 'X' || data.author !== 'officialdwts'
+      || data.image_path !== entry.path || !/^\d+$/.test(data.post_id)
+      || data.post_url !== `https://x.com/officialdwts/status/${data.post_id}`) return null;
+    return data;
+  } catch { return null; }
 }

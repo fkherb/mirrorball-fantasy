@@ -1,0 +1,53 @@
+OFFICIAL X PHOTO IMPORTS
+
+Server configuration (existing adjacent .env, never committed):
+  DWTS_X_BEARER_TOKEN=<X developer app bearer token>
+  DWTS_PHOTOS_GITHUB_TOKEN=<existing GitHub contents-write token>
+  DWTS_GITHUB_REPOSITORY=fkherb/mirrorball-fantasy
+
+The coordinator still gets its week, couples, schedule and completed receipts
+from Supabase. No extra roster file is needed. Wiki imports are unchanged.
+
+The photos path uses the official /2/users/16222584/tweets endpoint, expanding
+photo media. It does not invoke gallery-dl or the anonymous syndication endpoint.
+Each run reads only posts since the requested air date, at most three pages of
+20 posts. If capped, diagnostics report timeline_page_limit_reached. These are
+metered API reads, including previews: keep an X-console spending limit set.
+Repeated reads may be deduplicated by X billing, but do not rely on that as a cap.
+
+Only posts mentioning both full partner names and matching exactly one requested
+couple can be imported. Videos, missing media and ambiguous captions are not
+silently treated as photos. Pending couples remain pending when nothing matches.
+Rate limits stop that run and preserve the existing cooldown/skip-next-run rules.
+Photo URLs come from X's media expansion; originals download without credentials.
+The API token stays on the server, not in the database, Git, receipts or logs.
+
+Photos and a companion <filename>.source.json are committed together. Source files
+retain the public post URL, caption, timestamp, author and media metadata. The
+website's photo viewer links to the source. iOS can use the same sidecar format
+to add attribution; no iOS files are changed here.
+
+MANUAL REMOVALS (owner-managed; no automatic deletion monitoring):
+1. Disable photos mode for the affected week while cleaning up, particularly if
+   a takedown is requested while the original X post is still accessible.
+2. Use post_id/post_url in the source files and Supabase photo receipts to find
+   every affected original, companion source file and generated Card thumbnail.
+3. Remove those exact files, regenerate the photo manifest with npm run photos,
+   and publish. Verify they are absent from the live website and app caches.
+4. Review the matching Supabase run payloads and receipts for copied source data.
+   Do not blindly delete a completion receipt: it may cause another import.
+5. Old commits can still contain originals, thumbnails and source metadata.
+   Full removal may require a separately approved history cleanup and cache purge.
+   Coordinate with anyone holding repository clones before rewriting history.
+
+The operator must respond to X/user removal requests and removed posts promptly;
+this importer does not detect them automatically or guarantee legal compliance.
+API access does not itself grant copyright permission to republish photography.
+Policy: https://docs.x.com/developer-guidelines
+
+TESTING
+  python3 -B -m unittest discover -s scripts/tests -p 'test_dwts*.py'
+  .venv/bin/python dwts-worker.py --preview-week 5 --mode photos
+
+The preview reads X/GitHub but does not download, upload, reconcile or mark any
+couple complete. A successful preview is not proof of a completed photo upload.

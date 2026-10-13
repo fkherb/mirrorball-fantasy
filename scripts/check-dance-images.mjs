@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readdirSync, existsSync, readFileSync } from 'node:fs';
-import { danceImagesFor, danceCardPhotoFor, couplePhotoFor, refreshDanceImages, uploadedDancePhotos } from '../dance-images.js';
+import { danceImagesFor, danceCardPhotoFor, couplePhotoFor, refreshDanceImages, uploadedDancePhotos, dancePhotoSource } from '../dance-images.js';
 
 for (const pair of [
   'Amber Glenn & Pasha Pashkov', 'Ciara Miller & Brandon Armstrong',
@@ -21,7 +21,7 @@ const uploadedUrls = [...uploadedDancePhotos(manifestEntries).values()].flat();
 for (const week of [1, 2, 3]) {
   const folder = `Images/Dances/Week ${week}`;
   for (const filename of readdirSync(folder)) {
-    if (filename.startsWith('Elimination-')) continue; // Editorial elimination photos, not a specific dance.
+    if (filename.startsWith('Elimination-') || filename.endsWith('.source.json')) continue;
     assert.ok(uploadedUrls.some((url) => decodeURIComponent(url.split('?')[0]).endsWith(`${folder}/${filename}`)),
       `Unmapped: ${filename}`);
   }
@@ -76,3 +76,13 @@ assert.equal(danceImagesFor(2, 'Eliminated Pros').length, 2);
 assert.equal(danceImagesFor(3, 'Troupe Break').length, 1);
 assert.equal(danceImagesFor(3, 'Troupe').length, 0, 'A different performance title must not inherit its photos.');
 console.log('Existing and automatically discovered dance photos verified.');
+const sourcePath = 'Images/Dances/Week 5/Amber Glenn and Pasha Pashkov-1.jpeg';
+await refreshDanceImages({ force: true, fetcher: async () => ({ ok: true,
+  json: async () => ({ tree: [{ path: sourcePath, sha: 'photo' }, { path: `${sourcePath}.source.json`, sha: 'source' }] }) }) });
+const imported = danceImagesFor(5, 'Amber Glenn & Pasha Pashkov')[0];
+const provenance = { version: 1, provider: 'X', author: 'officialdwts', post_id: '123',
+  post_url: 'https://x.com/officialdwts/status/123', image_path: sourcePath };
+const sourceFetcher = (data) => async () => ({ ok: true, json: async () => data });
+assert.deepEqual(await dancePhotoSource(imported, sourceFetcher(provenance)), provenance);
+assert.equal(await dancePhotoSource(imported, sourceFetcher({ ...provenance, post_url: 'javascript:alert(1)' })), null);
+assert.equal(await dancePhotoSource('https://evil.example/photo.jpg', () => { throw new Error('Must not fetch'); }), null);

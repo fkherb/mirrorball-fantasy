@@ -1,6 +1,7 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261013-song-pills-v108';
-import { sortJudgeScores } from './judge-panel.js?v=20261013-song-pills-v108';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261013-x-photos-v109';
+import { sortJudgeScores } from './judge-panel.js?v=20261013-x-photos-v109';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
+import { dancePhotoSource } from './dance-images.js?v=20261013-x-photos-v109';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.
@@ -381,9 +382,32 @@ export function bindDanceGallery(container) {
   const stage = container.querySelector('.dance-gallery-main');
   const backdrop = container.querySelector('.dance-gallery-backdrop');
   if (!stage) return;
+  const credit = container.ownerDocument.createElement('p');
+  credit.className = 'dance-photo-credit';
+  credit.hidden = true;
+  stage.closest('.dance-detail-gallery').append(credit);
+  let sourceRequest = 0;
+  const updateCredit = async () => {
+    const request = ++sourceRequest;
+    credit.hidden = true;
+    credit.replaceChildren();
+    const source = await dancePhotoSource(stage.src);
+    if (!source || request !== sourceRequest) return;
+    const link = container.ownerDocument.createElement('a');
+    link.href = source.post_url;
+    link.target = '_blank';
+    link.rel = 'noopener noreferrer';
+    link.textContent = 'Photo: @officialdwts on X';
+    credit.append(link);
+    const date = new Date(source.created_at);
+    if (!Number.isNaN(date.valueOf())) credit.append(` · ${date.toLocaleDateString()}`);
+    credit.hidden = false;
+  };
+  void updateCredit();
   container.querySelectorAll('[data-dance-gallery-photo]').forEach((button) => button.addEventListener('click', () => {
     stage.src = button.dataset.danceGalleryPhoto;
     backdrop.src = stage.src;
+    void updateCredit();
     container.querySelectorAll('[data-dance-gallery-photo]').forEach((item) => {
       const selected = item === button;
       item.classList.toggle('selected', selected);

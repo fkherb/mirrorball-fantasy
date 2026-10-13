@@ -44,6 +44,7 @@ class Worker:
         self.url = config["SUPABASE_URL"].rstrip("/")
         self.secret = config["DWTS_AUTOMATION_WORKER_SECRET"]
         self.token = config.get("DWTS_PHOTOS_GITHUB_TOKEN", "")
+        self.x_token = config.get("DWTS_X_BEARER_TOKEN", "")
         self.name = config.get("DWTS_WORKER_NAME") or socket.gethostname()
         if not self.url.startswith("https://") or len(self.secret) < 32:
             raise ValueError("Configure HTTPS SUPABASE_URL and a worker secret of at least 32 characters")
@@ -54,7 +55,7 @@ class Worker:
         self.photos.configure_github_repository(config.get("DWTS_GITHUB_REPOSITORY"))
 
     def scrub(self, value):
-        for secret in (self.secret, self.token):
+        for secret in (self.secret, self.token, self.x_token):
             if secret:
                 value = value.replace(secret, "[REDACTED]")
         return value
@@ -99,7 +100,7 @@ class Worker:
         else:
             state = {"downloaded": {p["post_id"]: {} for p in task.get("known_photo_posts", [])}}
             result = self.photos.run(task["week"], couples, self.token, task.get("since"),
-                dry_run=preview, external_state=state)
+                dry_run=preview, external_state=state, x_token=self.x_token)
         result["diagnostics"]["requested_couples"] = len(task["targets"])
         result["diagnostics"]["reconciled_couples"] = reconciled
         return result
