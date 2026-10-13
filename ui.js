@@ -1,5 +1,5 @@
-import { db } from './supabase-client.js?v=20261013-medley-display-v107';
-import { prepareProfilePicture } from './profile-picture.js?v=20261013-medley-display-v107';
+import { db } from './supabase-client.js?v=20261013-song-pills-v108';
+import { prepareProfilePicture } from './profile-picture.js?v=20261013-song-pills-v108';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const buttons = [...document.querySelectorAll('nav button[data-view]')];

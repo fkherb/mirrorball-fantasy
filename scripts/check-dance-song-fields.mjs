@@ -43,9 +43,10 @@ assert.equal(danceSongList(null).medley, false);
 for (const kind of ['competitive', 'performance']) {
   const props = { kind, title: 'Opening Number', scores: [], teams: [], castRows: [],
     songTitle: medley.song_title, songArtist: medley.song_artist };
-  assert.match(danceCard(props), /class="dance-medley-summary"/);
+  assert.equal((danceCard(props).match(/class="dance-song-item"/g) || []).length, 3);
+  assert.doesNotMatch(danceCard(props), /Medley/);
   const detail = danceDetail(props);
-  assert.match(detail, /Medley · 3 songs/);
+  assert.doesNotMatch(detail, /Medley/);
   assert.match(detail, /<strong>Rude Boy<\/strong><span>Rihanna<\/span>/);
   assert.doesNotMatch(detail, /Nuevayol; Rude Boy/);
   const mismatchDetail = danceDetail({...props,songTitle:'A;B;C',songArtist:'X;Y'});
@@ -54,7 +55,9 @@ for (const kind of ['competitive', 'performance']) {
   assert.match(escaped, /&lt;A&gt;/);
   assert.doesNotMatch(escaped, /<A>|<X>/);
 }
-assert.match(danceSongSummary(medley), /Medley · Nuevayol \/ Rude Boy \/ Humble/);
+assert.match(danceSongSummary(medley), /title="Nuevayol by Bad Bunny">Nuevayol<\/span>/);
+assert.match(danceSongSummary(medley), /title="Rude Boy by Rihanna">Rude Boy<\/span>/);
+assert.match(danceSongSummary(medley), /title="Humble by Kendrick Lamar">Humble<\/span>/);
 assert.match(app, /danceSongSummary\(dance\)/, 'Score Desk shares medley formatting.');
 
 for (const kind of ['competitive', 'performance']) {

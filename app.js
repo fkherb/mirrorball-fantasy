@@ -1,17 +1,17 @@
-import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261013-medley-display-v107';
-import { db } from './supabase-client.js?v=20261013-medley-display-v107';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-medley-display-v107';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-medley-display-v107';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-medley-display-v107';
-import { loadMarketPredictions } from './market-predictions.js?v=20261013-medley-display-v107';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-medley-display-v107';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-medley-display-v107';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-medley-display-v107';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-medley-display-v107';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-medley-display-v107';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-medley-display-v107';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-medley-display-v107';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-medley-display-v107';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261013-song-pills-v108';
+import { db } from './supabase-client.js?v=20261013-song-pills-v108';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261013-song-pills-v108';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261013-song-pills-v108';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261013-song-pills-v108';
+import { loadMarketPredictions } from './market-predictions.js?v=20261013-song-pills-v108';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261013-song-pills-v108';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261013-song-pills-v108';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261013-song-pills-v108';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261013-song-pills-v108';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261013-song-pills-v108';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261013-song-pills-v108';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261013-song-pills-v108';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261013-song-pills-v108';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -1866,7 +1866,7 @@ async function openNewDance(week, danceCount, existingDance = null, existingScor
     const nightEditor = week.second_air_date && !scoresOnly
       ? `<label>Airing night<select id="danceAiringNight" required><option value="">Select night</option><option value="1" ${Number(existingDance?.airing_night) === 1 ? 'selected' : ''}>Night 1</option><option value="2" ${Number(existingDance?.airing_night) === 2 ? 'selected' : ''}>Night 2</option></select></label>` : '';
     const competitiveEditor = scoresOnly ? `<p class="sub">Update the individual judge scores for this competitive dance.</p>${judgeScoreSelectors}` : `<label class="couple-select">Couple<select id="dancePartnership"><option value="">Select couple</option>${pairOptions}</select></label><div class="dance-details"><label>Dance style <span class="optional">(optional)</span><select id="danceType"><option value="">Not set yet</option>${typeOptions}</select></label>${fusionEditor}<label>Song title <span class="optional">(optional)</span><input id="danceSongTitle" value="${escapeHtml(existingSong.title)}" placeholder="Song title"></label><label>Artist <span class="optional">(optional)</span><input id="danceSongArtist" value="${escapeHtml(existingSong.artist)}" placeholder="Artist"></label></div><p class="sub judge-hint">You can save the lineup now and enter judges’ scores during the show.</p>${judgeScoreSelectors}`;
-    const performanceEditor = `<label>Dance name <span class="optional">(optional)</span><input id="danceName" value="${escapeHtml(existingDance?.name || '')}" placeholder="Week ${week.number} Dance ${danceCount + 1}"></label><div class="dance-details"><label>Performance style <span class="optional">(optional · free text)</span><input id="performanceType" value="${escapeHtml(existingDance?.performance_type || '')}" placeholder="Opening number, troupe dance, etc."></label><label>Song <span class="optional">(optional)</span><input id="danceSongTitle" value="${escapeHtml(existingSong.title)}" placeholder="Song title"></label><label>Artist <span class="optional">(optional)</span><input id="danceSongArtist" value="${escapeHtml(existingSong.artist)}" placeholder="Artist"></label><label>Choreographer(s) <span class="optional">(optional)</span><input id="danceChoreography" value="${escapeHtml(existingDance?.choreography || '')}" placeholder="Choreographer names"></label></div><p class="sub">For a medley, separate song titles with semicolons and list artists in the same order (for example: Song A; Song B and Artist A; Artist B).</p>`;
+    const performanceEditor = `<label>Dance name <span class="optional">(optional)</span><input id="danceName" value="${escapeHtml(existingDance?.name || '')}" placeholder="Week ${week.number} Dance ${danceCount + 1}"></label><div class="dance-details"><label>Performance style <span class="optional">(optional · free text)</span><input id="performanceType" value="${escapeHtml(existingDance?.performance_type || '')}" placeholder="Opening number, troupe dance, etc."></label><label>Song <span class="optional">(optional)</span><input id="danceSongTitle" value="${escapeHtml(existingSong.title)}" placeholder="Song title"></label><label>Artist <span class="optional">(optional)</span><input id="danceSongArtist" value="${escapeHtml(existingSong.artist)}" placeholder="Artist"></label><label>Choreographer(s) <span class="optional">(optional)</span><input id="danceChoreography" value="${escapeHtml(existingDance?.choreography || '')}" placeholder="Choreographer names"></label></div><p class="sub">For multiple songs, separate song titles with semicolons and list artists in the same order (for example: Song A; Song B and Artist A; Artist B).</p>`;
     $('#danceForm').innerHTML = `${nightEditor}${kind === 'competitive' ? competitiveEditor : performanceEditor}${castEditor}`;
     if (!scoresOnly) {
       $('#danceType')?.addEventListener('change', (event) => { $('#fusionDanceTypes').hidden = event.target.value !== 'Fusion'; });

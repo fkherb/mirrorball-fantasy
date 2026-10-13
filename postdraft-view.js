@@ -1,5 +1,5 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261013-medley-display-v107';
-import { sortJudgeScores } from './judge-panel.js?v=20261013-medley-display-v107';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261013-song-pills-v108';
+import { sortJudgeScores } from './judge-panel.js?v=20261013-song-pills-v108';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
@@ -215,14 +215,14 @@ export function danceSongSummary(dance) {
   if (!label) return '';
   const { medley, entries } = danceSongList(dance);
   return medley
-    ? `<span class="dance-medley-summary" title="${html(label)}" aria-label="${html(label)}">Medley · ${html(entries.map((entry) => entry.title).filter(Boolean).join(' / '))}</span>`
+    ? entries.filter((entry) => entry.title).map(({ title, artist }) => `<span class="dance-song-item" title="${html(artist ? `${title} by ${artist}` : title)}">${html(title)}</span>`).join('')
     : `<span title="${html(label)}">${html(label)}</span>`;
 }
 
 function danceMedleyDetail(dance) {
   const { medley, entries, artists } = danceSongList(dance);
   if (!medley) return '';
-  return `<section class="dance-medley" aria-label="Medley songs and artists"><p class="eyebrow">Medley · ${entries.filter((entry) => entry.title).length} songs</p><ol>${entries.map(({ title, artist }) => `<li>${title ? `<strong>${html(title)}</strong>` : ''}${artist ? `<span>${html(artist)}</span>` : ''}</li>`).join('')}</ol>${artists.length ? `<p class="dance-medley-artists"><b>Artist${artists.length === 1 ? '' : 's'}</b> ${html(artists.join(' / '))}</p>` : ''}</section>`;
+  return `<section class="dance-medley" aria-label="Songs and artists"><ol>${entries.map(({ title, artist }) => `<li>${title ? `<strong>${html(title)}</strong>` : ''}${artist ? `<span>${html(artist)}</span>` : ''}</li>`).join('')}</ol>${artists.length ? `<p class="dance-medley-artists"><b>Artist${artists.length === 1 ? '' : 's'}</b> ${html(artists.join(' / '))}</p>` : ''}</section>`;
 }
 
 export function danceCard({ id, kind, title, shortTitle = '', danceType, performanceType, songTitle, songArtist, choreography, scores, castNames = [], castMembers = [], imageFor = null, scoreImage, judgePhoto, judgeMember, photos = [], cardPhoto = '', placeholderPhoto = '', placeholderStyle = '', poster = false, pending = false, editButton = false, weeklyPrediction = null, airingNight = null, weekNumber = null, complete = true, guestJudge = false, week = {} }) {
