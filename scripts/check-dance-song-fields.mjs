@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
-import { danceSongParts, danceSongLabel, joinDanceSong } from '../dance-song.js';
-import { danceCard, danceDetail } from '../postdraft-view.js';
+import { danceSongParts, danceSongLabel, joinDanceSong, danceSongList } from '../dance-song.js';
+import { danceCard, danceDetail, danceSongSummary } from '../postdraft-view.js';
 
 const read = (file) => readFile(new URL(`../${file}`, import.meta.url), 'utf8');
 const [app, workspace, view, songModule] = await Promise.all(
@@ -24,6 +24,38 @@ assert.deepEqual(danceSongParts({ song_title: 'Title by the Sea', song_artist: '
 assert.equal(joinDanceSong(row.song_title, row.song_artist), 'Stand by Me by Ben E. King',
   'Presentation can combine the separate values without parsing them.');
 assert.equal(joinDanceSong('', ''), '');
+
+const medley = { song_title: ' Nuevayol; Rude Boy; Humble ', song_artist: ' Bad Bunny; Rihanna; Kendrick Lamar ' };
+assert.deepEqual(danceSongList(medley).entries, [
+  { title: 'Nuevayol', artist: 'Bad Bunny' },
+  { title: 'Rude Boy', artist: 'Rihanna' },
+  { title: 'Humble', artist: 'Kendrick Lamar' },
+]);
+assert.equal(danceSongLabel(medley), 'Nuevayol by Bad Bunny · Rude Boy by Rihanna · Humble by Kendrick Lamar');
+assert.deepEqual(danceSongList({ song_title: 'A;B;C', song_artist: 'X;;Z' }).entries,
+  [{title:'A',artist:'X'},{title:'B',artist:''},{title:'C',artist:'Z'}], 'Empty credits must not shift artists.');
+const unmatched = { song_title: 'A;B;C', song_artist: 'X;Y' };
+assert.ok(danceSongList(unmatched).entries.every((entry) => !entry.artist));
+assert.deepEqual(danceSongList(unmatched).artists, ['X','Y']);
+assert.equal(danceSongLabel(unmatched), 'A · B · C · Artists: X / Y');
+assert.equal(danceSongList({song_title:'Song',song_artist:'Artist A; Artist B'}).medley, false);
+assert.equal(danceSongList(null).medley, false);
+for (const kind of ['competitive', 'performance']) {
+  const props = { kind, title: 'Opening Number', scores: [], teams: [], castRows: [],
+    songTitle: medley.song_title, songArtist: medley.song_artist };
+  assert.match(danceCard(props), /class="dance-medley-summary"/);
+  const detail = danceDetail(props);
+  assert.match(detail, /Medley · 3 songs/);
+  assert.match(detail, /<strong>Rude Boy<\/strong><span>Rihanna<\/span>/);
+  assert.doesNotMatch(detail, /Nuevayol; Rude Boy/);
+  const mismatchDetail = danceDetail({...props,songTitle:'A;B;C',songArtist:'X;Y'});
+  assert.match(mismatchDetail, /<b>Artists<\/b> X \/ Y/);
+  const escaped = danceDetail({...props,songTitle:'<A>;B',songArtist:'<X>;Y'});
+  assert.match(escaped, /&lt;A&gt;/);
+  assert.doesNotMatch(escaped, /<A>|<X>/);
+}
+assert.match(danceSongSummary(medley), /Medley · Nuevayol \/ Rude Boy \/ Humble/);
+assert.match(app, /danceSongSummary\(dance\)/, 'Score Desk shares medley formatting.');
 
 for (const kind of ['competitive', 'performance']) {
   const props = {
