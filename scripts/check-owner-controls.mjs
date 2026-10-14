@@ -1,0 +1,13 @@
+import assert from 'node:assert/strict';
+import {guestPhotoPath,guestPhotoFields,predictionStatusMarkup} from '../week-owner-controls.js';
+import {judgePortraitFor} from '../postdraft-view.js';
+assert.equal(guestPhotoPath(' Kym   Johnson '),'Images/Guests/Kym Johnson.jpeg');
+assert.equal(guestPhotoPath('../Joe Buck'),'');
+assert.equal(guestPhotoPath('Kym?x=y'),'');
+assert.match(judgePortraitFor('Kym Johnson','../',{guest_judge_name:'Kym Johnson'}),/Images\/Guests\/Kym Johnson.jpeg/);
+assert.match(guestPhotoFields({guest_judge_name:'Kym Johnson',guest_judge_avatar_frame:{zoom:2}}),/value="2"/);
+const status=predictionStatusMarkup({event_ticker:'KX-TEST',quote_count:10,enabled:true,can_refresh:true,error:'<script>'});
+assert.match(status,/10 couples/);assert.match(status,/Refresh now/);assert.match(status,/&lt;script&gt;/);assert.doesNotMatch(status,/<script>/);
+assert.match(predictionStatusMarkup({can_refresh:false}),/data-request-predictions disabled/);
+assert.match(predictionStatusMarkup({pending:true}),/Refresh in progress/);
+console.log('Guest filename lookup, photo framing markup, prediction controls and escaping verified.');

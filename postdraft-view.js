@@ -1,7 +1,8 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261013-dance-videos-v110';
-import { sortJudgeScores } from './judge-panel.js?v=20261013-dance-videos-v110';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261014-owner-controls-v111';
+import { sortJudgeScores } from './judge-panel.js?v=20261014-owner-controls-v111';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
-import { dancePhotoSource, danceVideoFor } from './dance-images.js?v=20261013-dance-videos-v110';
+import { guestPhotoPath } from './week-owner-controls.js?v=20261014-owner-controls-v111';
+import { dancePhotoSource, danceVideoFor } from './dance-images.js?v=20261014-owner-controls-v111';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.
@@ -11,9 +12,10 @@ const html = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => (
 const imagePosition = (value) => value != null && Number.isFinite(Number(value)) ? Number(value) : 50;
 export function judgePortraitFor(name, assetRoot = '', week = {}) {
   const judge = String(name || '').trim().toLowerCase();
+  const guestPath = week.guest_judge_image_path || guestPhotoPath(week.guest_judge_name || '');
   if (judge === String(week.guest_judge_name || '').trim().toLowerCase()
-    && /^Images\//.test(week.guest_judge_image_path || '')) {
-    return `${assetRoot}${week.guest_judge_image_path}?v=20261013-guest-judge`;
+    && /^Images\//.test(guestPath)) {
+    return `${assetRoot}${guestPath}?v=20261014-guests`;
   }
   const portraits = {
     'carrie ann': 'Carrie Ann Inaba.webp', 'carrie ann inaba': 'Carrie Ann Inaba.webp',

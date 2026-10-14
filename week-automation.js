@@ -20,11 +20,12 @@ export function automationFields(data, guest) {
     <label class="check-label"><input id="weekAutomationEnabled" type="checkbox" ${settings.enabled ? 'checked' : ''}> Enable automation for this week</label>
     <div class="automation-mode-grid">${automationModes.map(([mode, label]) => `<label class="check-label"><input data-automation-mode="${mode}" type="checkbox" ${modes.includes(mode) ? 'checked' : ''}> ${label}</label>`).join('')}</div>
     <p class="sub">Saved with the week. Pausing prevents new jobs; an already-running job may finish. Completing the week remains manual.</p>
-    <details><summary>Wikipedia source & judge order</summary>
+    <section class="week-judge-panel"><h3>Judges’ score order</h3>
+    <div id="weekAutomationJudgeOrder">${judgeOrderFields(guest, settings.judge_order || [])}</div></section>
+    <details><summary>Wikipedia source</summary>
     <label class="check-label"><input id="weekWikiAutomatic" type="checkbox" ${!settings.wiki_tag_override ? 'checked' : ''}> Discover the Wikipedia week tag automatically</label>
     <label id="weekWikiTagField" ${settings.wiki_tag_override ? '' : 'hidden'}>Wikipedia week tag<input id="weekWikiTag" maxlength="250" value="${escape(settings.wiki_tag || '')}" placeholder="#Week_4:_Mariah_Carey_Night"></label>
     <p class="sub">Current tag: ${escape(settings.wiki_tag || 'Waiting for discovery')}</p>
-    <div id="weekAutomationJudgeOrder">${judgeOrderFields(guest, settings.judge_order || [])}</div>
     </details></fieldset>`;
 }
 

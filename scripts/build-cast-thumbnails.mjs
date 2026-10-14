@@ -12,14 +12,17 @@ if (!checkOnly) await mkdir(thumbnails, { recursive: true });
 let previous = null;
 try { previous = JSON.parse(await readFile(manifestUrl, 'utf8')); } catch { /* First run. */ }
 const previousEntries = new Map((previous?.entries || []).map((entry) => [entry.source, entry]));
-const files = (await readdir(images)).filter((name) => /\.(jpe?g|png|webp)$/i.test(name)).sort();
+const guestFiles = (await readdir(new URL('Guests/', images)).catch(() => []))
+  .filter((name) => /\.(jpe?g|png|webp)$/i.test(name)).map((name) => `Guests/${name}`);
+const files = [...(await readdir(images)).filter((name) => /\.(jpe?g|png|webp)$/i.test(name)), ...guestFiles].sort();
 const entries = [];
 for (const name of files) {
   const source = `Images/${name}`;
-  const sourceBytes = await readFile(new URL(encodeURIComponent(name), images));
+  const sourceBytes = await readFile(new URL(name.split('/').map(encodeURIComponent).join('/'), images));
   const sourceSha = hash(sourceBytes);
-  const target = new URL(`${encodeURIComponent(name.replace(/\.[^.]+$/, ''))}.webp`, thumbnails);
-  const thumbnail = `Images/Cast Thumbnails/${name.replace(/\.[^.]+$/, '')}.webp`;
+  const basename = name.split('/').at(-1).replace(/\.[^.]+$/, '');
+  const target = new URL(`${encodeURIComponent(basename)}.webp`, thumbnails);
+  const thumbnail = `Images/Cast Thumbnails/${basename}.webp`;
   let thumbnailBytes = null;
   try { thumbnailBytes = await readFile(target); } catch { /* New portrait. */ }
   const old = previousEntries.get(source);

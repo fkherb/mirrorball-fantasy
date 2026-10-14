@@ -26,6 +26,8 @@ jobs:
       - run: node scripts/check-airing-policy.mjs
       - run: node scripts/check-postdraft-view.mjs
       - run: node scripts/check-guest-judge-panel.mjs
+      - run: npm run check:owner
+      - run: npm run check:automation
       - run: node scripts/check-dance-song-fields.mjs
       - run: node scripts/check-dance-style-migration.mjs
       - run: node --experimental-strip-types scripts/check-dance-music-matches.mjs

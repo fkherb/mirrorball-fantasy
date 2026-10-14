@@ -10,6 +10,7 @@ on:
       - 'Images/*.jpeg'
       - 'Images/*.png'
       - 'Images/*.webp'
+      - 'Images/Guests/**'
       - 'scripts/build-dance-photo-assets.mjs'
       - 'scripts/build-cast-thumbnails.mjs'
       - 'package-lock.json'
@@ -38,6 +39,7 @@ jobs:
       - run: npm run photos
       - run: npm run photos:check
       - run: npm run check
+      - run: npm run check:owner
       - name: Commit generated photo assets when changed
         run: |
           git add -- Images/Dances 'Images/Cast Thumbnails' dance-photo-manifest.json cast-thumbnail-manifest.json

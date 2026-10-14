@@ -141,6 +141,9 @@ Deno.serve(async (request) => {
         && snapshotBucket(Date.parse(state.refreshed_at), intervalMinutes) === snapshotBucket(now, intervalMinutes)) {
       return json({ skipped: true, next_interval_minutes: intervalMinutes });
     }
+    await supabase('market_prediction_sync_state?id=eq.1', {
+      method: 'PATCH', body: JSON.stringify({ last_attempt_at: new Date(now).toISOString() }),
+    });
 
     const castById = new Map<string, { role: string; eliminated_week_id?: string | null }>(cast.map((member: { id: string; role: string; eliminated_week_id?: string | null }) => [member.id, member]));
     const activeStars = new Set<string>(pairs.filter((pair: { star_id: string; pro_id: string }) =>
@@ -192,12 +195,21 @@ Deno.serve(async (request) => {
     });
     await supabase('market_prediction_sync_state?id=eq.1', {
       method: 'PATCH', headers: { Prefer: 'return=minimal' },
-      body: JSON.stringify({ refreshed_at: fetchedAt, ...(history.length ? { snapshot_bucket: bucket } : {}) }),
+      body: JSON.stringify({ refreshed_at: fetchedAt, last_completed_at: new Date().toISOString(),
+        last_error: null, last_weekly_event: weeklyTicker,
+        last_weekly_count: rows.filter((row) => row.market_kind === 'elimination' && row.percent != null).length,
+        ...(history.length ? { snapshot_bucket: bucket } : {}) }),
     });
     return json({ updated: rows.length, snapshotted: history.length,
       weekly_event: weeklyTicker, fetched_at: fetchedAt, next_interval_minutes: intervalMinutes });
   } catch (error) {
     console.error(error);
+    // Owner-visible diagnostics never include database response bodies or credentials.
+    const message = error instanceof Error && /^Kalshi (?:\d{3}|unavailable) for KX[A-Z0-9-]+$/.test(error.message)
+      ? error.message : 'Prediction sync failed. Check the prediction service logs.';
+    await supabase('market_prediction_sync_state?id=eq.1', {
+      method: 'PATCH', body: JSON.stringify({ last_completed_at: new Date().toISOString(), last_error: message }),
+    }).catch(() => {});
     return json({ error: error instanceof Error ? error.message : 'Prediction sync failed' }, 502);
   }
 });

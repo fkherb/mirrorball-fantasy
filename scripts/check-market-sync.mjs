@@ -88,6 +88,10 @@ try {
   assert.equal(result.next_interval_minutes, 5);
   assert.equal(result.updated, 6);
   assert.equal(result.snapshotted, 6);
+  assert.equal(syncState.last_weekly_event, 'KXDWTSELIMINATION-99OCT01');
+  assert.equal(syncState.last_weekly_count, 1);
+  assert.equal(syncState.last_error, null);
+  assert.ok(syncState.last_attempt_at && syncState.last_completed_at);
   const saved = calls.find((call) => call.url.pathname.endsWith('/cast_market_predictions'));
   const rows = JSON.parse(saved.init.body);
   assert.equal(rows.find((row) => row.market_kind === 'elimination').week_id, 'week-3');
