@@ -1,12 +1,12 @@
-import { db } from './supabase-client.js?v=20261015-r2-video-v112';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-r2-video-v112';
-import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261015-r2-video-v112';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-r2-video-v112';
-import { loadMarketPredictions } from './market-predictions.js?v=20261015-r2-video-v112';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-r2-video-v112';
-import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261015-r2-video-v112';
-import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261015-r2-video-v112';
-import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261015-r2-video-v112';
+import { db } from './supabase-client.js?v=20261015-youtube-video-v113';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-youtube-video-v113';
+import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261015-youtube-video-v113';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-youtube-video-v113';
+import { loadMarketPredictions } from './market-predictions.js?v=20261015-youtube-video-v113';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-youtube-video-v113';
+import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261015-youtube-video-v113';
+import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261015-youtube-video-v113';
+import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261015-youtube-video-v113';
 
 const $ = (selector) => document.querySelector(selector);
 const safe = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -1179,6 +1179,7 @@ function openWorkspaceDanceDetail(data, score, assignmentMap, memberByTeam, week
   rows.forEach((row) => { if (row.teamId) totals.set(row.teamName, (totals.get(row.teamName) || 0) + row.points); });
   const title = star && pro ? `${star.name} & ${pro.name}` : dance.name || 'Performance';
   dialog(`${backToProfile ? '<div class="modal-back-row"><button class="profile-back-button secondary" id="danceBackToProfile" type="button" aria-label="Back to profile">← Back</button></div>' : ''}${danceDetail({ kind: dance.kind, title, danceType: dance.dance_type, performanceType: dance.performance_type, songTitle: dance.song_title, songArtist: dance.song_artist, choreography: dance.choreography, photos: danceImagesFor(week.number, title, dance.airing_night), placeholderPhoto: dance.kind === 'competitive' ? couplePhotoFor(title) : '', weekNumber: week.number, airingNight: week.second_air_date ? dance.airing_night : null,
+    youtubeVideoId: dance.youtube_video_id, youtubeMatchStatus: dance.youtube_match_status, youtubeTitle: dance.youtube_title,
     scores, scoreImage: (value) => `Images/Judges Scores/${Number(value)}.png?v=20260921-optimized`,
     week, judgePhoto: (name) => judgePortraitFor(name, '', week),
     judgeMember: (name) => judgeMemberFor(name, data.cast),

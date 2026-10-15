@@ -1,18 +1,18 @@
-import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261015-r2-video-v112';
-import { db } from './supabase-client.js?v=20261015-r2-video-v112';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261015-r2-video-v112';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-r2-video-v112';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261015-r2-video-v112';
-import { loadMarketPredictions } from './market-predictions.js?v=20261015-r2-video-v112';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-r2-video-v112';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261015-r2-video-v112';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261015-r2-video-v112';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261015-r2-video-v112';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261015-r2-video-v112';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-r2-video-v112';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261015-r2-video-v112';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261015-r2-video-v112';
-import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261015-r2-video-v112';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261015-youtube-video-v113';
+import { db } from './supabase-client.js?v=20261015-youtube-video-v113';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261015-youtube-video-v113';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-youtube-video-v113';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261015-youtube-video-v113';
+import { loadMarketPredictions } from './market-predictions.js?v=20261015-youtube-video-v113';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-youtube-video-v113';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261015-youtube-video-v113';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261015-youtube-video-v113';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261015-youtube-video-v113';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261015-youtube-video-v113';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-youtube-video-v113';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261015-youtube-video-v113';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261015-youtube-video-v113';
+import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261015-youtube-video-v113';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -1546,6 +1546,7 @@ function openDanceDetail(week, dance, index, pairData, scores, cast, context = {
   const teamLeaders = [...teamTotals].sort((a, b) => b[1] - a[1]);
   const sortedRows = [...detailRows].sort((a, b) => b.points - a.points || a.member.name.localeCompare(b.member.name));
   openModal(`${context.backAction ? '<div class="modal-back-row"><button class="profile-back-button secondary" id="danceBackToProfile" type="button" aria-label="Back to profile">← Back</button></div>' : ''}${danceDetail({ kind: dance.kind, title, danceType: dance.dance_type, performanceType: dance.performance_type, songTitle: dance.song_title, songArtist: dance.song_artist, choreography: dance.choreography,
+    youtubeVideoId: dance.youtube_video_id, youtubeMatchStatus: dance.youtube_match_status, youtubeTitle: dance.youtube_title,
     scores, week, scoreImage: judgeScoreImage, judgePhoto: isScoreDeskSurface ? null : (name) => judgePortraitFor(name, assetRoot, week),
     judgeMember: isScoreDeskSurface ? null : (name) => judgeMemberFor(name, pairData.players),
     photos: danceImagesFor(week.number, title, dance.airing_night).map(danceAsset),

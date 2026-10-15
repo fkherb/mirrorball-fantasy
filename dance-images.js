@@ -23,11 +23,10 @@ export function couplePhotoFor(title) {
 }
 const { treeUrl, rawRoot } = photoRepositoryEndpoints(import.meta.url);
 const manifestUrls = [`${rawRoot}dance-photo-manifest.json`, new URL('./dance-photo-manifest.json', import.meta.url).href];
-const storageKey = 'mirrorball-dance-photos-v4';
+const storageKey = 'mirrorball-dance-photos-v5';
 const refreshMs = 5 * 60 * 1000;
 let uploadedPhotos = new Map();
 let uploadedCards = new Map();
-let uploadedVideos = new Map();
 let knownEntries = [];
 let lastCheck = 0;
 let pendingCheck = null;
@@ -37,14 +36,6 @@ const photoKey = (week, title, night = null) => `${week}:${key(title)}${night ? 
 const photoUrl = (path, sha) => `${rawRoot}${path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(sha)}`;
 const originalPattern = /^Images\/Dances\/Week (\d+)\/(.+?)(?:-Night ([12]))?-(\d+)\.(jpe?g|png|webp)$/i;
 const cardPattern = /^Images\/Dances\/Card\/Week (\d+)\/(.+?)(?:-Night ([12]))?-(\d+)\.webp$/i;
-const videoPattern = /^Videos\/Dances\/Week (\d+)\/(.+?)(?:-Night ([12]))?\.mp4$/i;
-// Exact partnership aliases only: Connor Wood must never match Conner Leavitt.
-const videoName = (title) => key(title)
-  .replace(/^connor leavitt and adele zaikman$/, 'conner leavitt and adele zaikman')
-  .replace(/^guillermo rodriguez and witney$/, 'guillermo rodriguez and witney carson');
-const videoKey = (week, title, night = null) => photoKey(week, videoName(title), night);
-// The repository indexes filenames only; playback bytes come from the R2 media host.
-const videoUrl = (path, sha) => `https://mirrorball-media.codys-server.net/${path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(sha)}`;
 const uploadedFor = (map, week, title, night) => {
   return map.get(photoKey(week, title, [1, 2].includes(Number(night)) ? Number(night) : null)) || null;
 };
@@ -83,17 +74,10 @@ export const uploadedDancePhotos = (tree) => photoMaps(tree).photos;
 function applyPhotos(entries) {
   knownEntries = entries;
   const next = photoMaps(entries);
-  const videos = new Map();
-  for (const entry of entries) {
-    if (entry.type && entry.type !== 'blob' || typeof entry.sha !== 'string') continue;
-    const match = videoPattern.exec(entry.path);
-    if (match) videos.set(videoKey(Number(match[1]), match[2], Number(match[3]) || null), videoUrl(entry.path, entry.sha));
-  }
-  const changed = JSON.stringify([[...next.photos], [...next.cardPhotos], [...videos]])
-    !== JSON.stringify([[...uploadedPhotos], [...uploadedCards], [...uploadedVideos]]);
+  const changed = JSON.stringify([[...next.photos], [...next.cardPhotos]])
+    !== JSON.stringify([[...uploadedPhotos], [...uploadedCards]]);
   uploadedPhotos = next.photos;
   uploadedCards = next.cardPhotos;
-  uploadedVideos = videos;
   if (changed && typeof window !== 'undefined') window.dispatchEvent(new Event('dance-images-updated'));
   return changed;
 }
@@ -130,7 +114,7 @@ export async function refreshDanceImages({ force = false, fetcher = globalThis.f
       const changed = applyPhotos(result.tree);
       failures = 0;
       try { localStorage.setItem(storageKey, JSON.stringify({ entries: result.tree
-        .filter((item) => originalPattern.test(item.path) || cardPattern.test(item.path) || videoPattern.test(item.path) || /\.source\.json$/.test(item.path))
+        .filter((item) => originalPattern.test(item.path) || cardPattern.test(item.path) || /\.source\.json$/.test(item.path))
         .map(({ path, sha }) => ({ path, sha })) })); } catch { /* Optional cache. */ }
       return changed;
     } catch (error) {
@@ -168,21 +152,6 @@ export function danceImagesFor(weekNumber, title, night = null) {
 
 export function danceCardPhotoFor(weekNumber, title, night = null) {
   return uploadedFor(uploadedCards, Number(weekNumber), title, night) || '';
-}
-
-export function danceVideoFor(weekNumber, title, night = null) {
-  const assignedNight = [1, 2].includes(Number(night)) ? Number(night) : null;
-  const base = videoKey(weekNumber, title);
-  if (assignedNight && uploadedVideos.has(`${base}:${assignedNight}`)) return uploadedVideos.get(`${base}:${assignedNight}`);
-  if (uploadedVideos.has(`${base}:1`) || uploadedVideos.has(`${base}:2`)) return '';
-  // An unlabelled Week 1 clip can match a unique dance, not two different nights.
-  const photoNights = new Set(knownEntries.flatMap((entry) => {
-    const match = originalPattern.exec(entry.path);
-    return match && Number(match[1]) === Number(weekNumber) && videoName(match[2]) === videoName(title)
-      && match[3] ? [Number(match[3])] : [];
-  }));
-  if (photoNights.size > 1 || (assignedNight && photoNights.size && !photoNights.has(assignedNight))) return '';
-  return uploadedVideos.get(base) || '';
 }
 
 // Only API-imported photos have provenance files; manual uploads are unchanged.

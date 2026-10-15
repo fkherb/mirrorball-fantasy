@@ -4,19 +4,39 @@ import { standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, 
 import { danceSongParts, danceSongLabel, joinDanceSong } from '../dance-song.js';
 import { avatarFrameFor, avatarImageStyle } from '../cast-avatar-frame.js';
 import { couplePhotoFrameFor, couplePhotoStyle } from '../couple-photo-frame.js';
+import { youtubeVideoFor } from '../dance-video.js';
+import { readFileSync } from 'node:fs';
 
 const member = { id: 'cast-1', name: 'A & B', image_position: 0 };
-const videoGallery = danceGallery({ title: 'Test', photos: ['/one.jpg', '/two.jpg'], video: '/dance.mp4' });
+const youtube = { youtubeVideoId: '6Lhnozic5iA', youtubeMatchStatus: 'matched', youtubeTitle: 'Jackson’s dance' };
+const videoGallery = danceGallery({ title: 'Test', photos: ['/one.jpg', '/two.jpg'], ...youtube });
 assert.ok(videoGallery.indexOf('data-dance-gallery-video') > videoGallery.lastIndexOf('data-dance-gallery-photo'));
-assert.match(videoGallery, /<video[^>]*data-src="\/dance.mp4"[^>]*controls playsinline preload="none"[^>]*hidden/);
-assert.doesNotMatch(videoGallery, /autoplay|type="video\/mp4"/);
+assert.match(videoGallery, /<iframe[^>]*data-src="https:\/\/www.youtube.com\/embed\/6Lhnozic5iA\?playsinline=1&amp;rel=0"[^>]*hidden/);
+assert.match(videoGallery, /referrerpolicy="strict-origin-when-cross-origin"/);
+assert.doesNotMatch(videoGallery, /autoplay|<video|<iframe[^>]*\ssrc=/);
 assert.equal((videoGallery.match(/data-dance-gallery-video/g) || []).length, 1);
-const videoOnly = danceGallery({ title: 'Test', video: '/only.mp4' });
-assert.match(videoOnly, /<video[^>]*data-src="\/only.mp4"/);
-assert.doesNotMatch(videoOnly, /<video[^>]*hidden|src=""/);
+const videoOnly = danceGallery({ title: 'Test', ...youtube });
+assert.match(videoOnly, /<iframe[^>]*data-src="https:\/\/www.youtube.com\/embed\/6Lhnozic5iA/);
+assert.doesNotMatch(videoOnly, /<iframe[^>]*hidden|src=""/);
 assert.equal(danceGallery({ title: 'Empty' }), '');
-assert.doesNotMatch(danceGallery({ title: 'Photos', photos: ['/one.jpg'] }), /<video|Video/);
-assert.match(danceGallery({ title: 'A " B', video: '/x.mp4?test="value' }), /&quot;/);
+assert.doesNotMatch(danceGallery({ title: 'Photos', photos: ['/one.jpg'] }), /<iframe|Video/);
+assert.match(danceGallery({ title: 'A " B', ...youtube, youtubeTitle: 'A " B <title>' }), /title="A &quot; B &lt;title&gt;"/);
+assert.match(videoGallery, /href="https:\/\/www.youtube.com\/watch\?v=6Lhnozic5iA"/);
+for (const status of [null, 'pending', 'no_match']) {
+  assert.doesNotMatch(danceGallery({ title: 'Pending', ...youtube, youtubeMatchStatus: status }), /<iframe|youtube.com/);
+}
+assert.match(danceGallery({ title: 'Manual', ...youtube, youtubeMatchStatus: 'manual' }), /<iframe/);
+assert.doesNotMatch(danceGallery({ title: 'Unsafe', ...youtube, youtubeVideoId: 'javascript:alert(1)' }), /<iframe|javascript:/);
+for (const id of ['', 'too-short', 'https://youtu.be/6Lhnozic5iA', '6Lhnozic5iA?autoplay=1', '" onload="bad', null]) {
+  assert.equal(youtubeVideoFor({ youtube_video_id: id, youtube_match_status: 'matched' }), null);
+}
+for (const file of ['app.js', 'league-workspace.js']) {
+  const caller = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
+  assert.match(caller, /youtubeVideoId: dance.youtube_video_id, youtubeMatchStatus: dance.youtube_match_status, youtubeTitle: dance.youtube_title/);
+}
+const dbVideoDetail = danceDetail({ title: 'Jackson & Emma', kind: 'competitive', scores: [], teams: [], castRows: [], ...youtube });
+assert.match(dbVideoDetail, /youtube.com\/embed\/6Lhnozic5iA/);
+assert.doesNotMatch(danceDetail({ title: 'Jackson & Emma', kind: 'competitive', scores: [], teams: [], castRows: [], weekNumber: 1, airingNight: 1 }), /<iframe|<video|mirrorball-media|githubusercontent.com\/media/);
 const rows = [{ member, role: 'Pro', displayRole: 'Pro', appearanceRate: 1,
   official: 30, appearances: 2, total: 32 }];
 
