@@ -1,0 +1,55 @@
+# Runs the DWTS automation worker (Wikipedia scores/results and official X photos)
+# on GitHub's runners instead of the homelab. Supabase starts it: the pg_cron job
+# "mirrorball-dispatch-worker" calls dwts_dispatch_worker() every minute, and when a
+# job is due and no worker has checked in recently it sends a repository_dispatch.
+# The worker claims and runs jobs exactly like the old service, keeps polling every
+# minute while another job is due within 10 minutes (live shows recheck every 5),
+# then exits. Run it by hand from the Actions tab if needed.
+#
+# Secrets: DWTS_AUTOMATION_WORKER_SECRET, DWTS_PHOTOS_GITHUB_TOKEN (a token that can
+# commit photos, so the photo workflow runs on its commits), DWTS_X_BEARER_TOKEN.
+name: DWTS automation worker
+
+on:
+  repository_dispatch:
+    types: [dwts-work]
+  workflow_dispatch:
+
+# One worker at a time (the queue also leases each job). A dispatch that arrives
+# while a run is active waits; extra ones are dropped.
+concurrency:
+  group: dwts-worker
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  worker:
+    runs-on: ubuntu-latest
+    timeout-minutes: 355
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts/Automations
+          sparse-checkout-cone-mode: true
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install
+        run: python -m pip install --quiet python-dotenv==1.2.4
+
+      - name: Run until idle
+        working-directory: scripts/Automations
+        env:
+          SUPABASE_URL: https://mdrrnanxqazecqviaass.supabase.co
+          DWTS_WORKER_NAME: github-actions
+          DWTS_GITHUB_REPOSITORY: ${{ github.repository }}
+          DWTS_AUTOMATION_WORKER_SECRET: ${{ secrets.DWTS_AUTOMATION_WORKER_SECRET }}
+          DWTS_PHOTOS_GITHUB_TOKEN: ${{ secrets.DWTS_PHOTOS_GITHUB_TOKEN }}
+          DWTS_X_BEARER_TOKEN: ${{ secrets.DWTS_X_BEARER_TOKEN }}
+          DWTS_WIKI_USER_AGENT: MirrorballFantasyWiki/1.0 (https://github.com/${{ github.repository }}; read-only fantasy league tool)
+          PYTHONUNBUFFERED: '1'
+        run: python dwts-worker.py --until-idle 10 --max-minutes 330

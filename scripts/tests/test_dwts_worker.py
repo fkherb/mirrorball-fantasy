@@ -1,3 +1,4 @@
+from datetime import timedelta
 import importlib.util
 from pathlib import Path
 import tempfile
@@ -112,6 +113,29 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual(positions, [1, 2])
         self.assertEqual([item['performances'][0]['table_index'] for item in result['couples']], [0, 0])
 
+
+    def test_until_idle_exits_when_nothing_is_due_soon(self):
+        far = '2099-01-01T00:00:00+00:00'
+        with patch.object(self.w, 'api', return_value={'run_id': None, 'next_run_at': far}) as api, \
+             patch.object(worker.time, 'sleep') as sleep:
+            self.w.run(until_idle=10)
+        api.assert_called_once_with('claim')
+        sleep.assert_not_called()
+
+    def test_until_idle_waits_for_a_job_due_soon(self):
+        soon = (worker.datetime.now(worker.timezone.utc) + timedelta(minutes=4)).isoformat()
+        responses = [{'run_id': None, 'next_run_at': soon}, {'run_id': None, 'next_run_at': None}]
+        with patch.object(self.w, 'api', side_effect=responses) as api, \
+             patch.object(worker.time, 'sleep') as sleep:
+            self.w.run(until_idle=10)
+        self.assertEqual(api.call_count, 2)
+        sleep.assert_called_once_with(60)
+
+    def test_due_within(self):
+        self.assertFalse(self.w.due_within(None, 10))
+        self.assertFalse(self.w.due_within('not a date', 10))
+        self.assertTrue(self.w.due_within('2000-01-01T00:00:00Z', 10))
+        self.assertFalse(self.w.due_within('2099-01-01T00:00:00Z', 10))
 
 if __name__ == '__main__':
     unittest.main()

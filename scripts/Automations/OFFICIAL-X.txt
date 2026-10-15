@@ -1,6 +1,15 @@
+WHERE THE WORKER RUNS (2026-10-16)
+  GitHub Actions, not the homelab: .github/workflows/dwts-worker.yml runs
+  dwts-worker.py --until-idle 10 whenever Supabase dispatches it (pg_cron job
+  mirrorball-dispatch-worker → dwts_dispatch_worker(); see
+  supabase/add-github-worker-dispatch.sql). Repository secrets:
+  DWTS_AUTOMATION_WORKER_SECRET, DWTS_PHOTOS_GITHUB_TOKEN, DWTS_X_BEARER_TOKEN.
+  Vault secret github_dispatch_token starts the workflow. The systemd unit below is
+  kept as a fallback: disable the dispatcher first (dwts_dispatch_state.enabled).
+
 OFFICIAL X PHOTO IMPORTS
 
-Server configuration (existing adjacent .env, never committed):
+Homelab fallback configuration (adjacent .env, never committed):
   DWTS_X_BEARER_TOKEN=<X developer app bearer token>
   DWTS_PHOTOS_GITHUB_TOKEN=<existing GitHub contents-write token>
   DWTS_GITHUB_REPOSITORY=fkherb/mirrorball-fantasy

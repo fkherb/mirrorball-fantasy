@@ -3,6 +3,9 @@
 
 --check verifies authentication. --once processes one claimed job.
 --preview-week N --mode MODE gathers data without importing or uploading it.
+--until-idle M (GitHub Actions): poll every minute like the service, but exit once
+nothing is running and no job is due within M minutes. Supabase starts the
+workflow again when work is due (dwts_dispatch_worker). --max-minutes caps a run.
 With no options, poll every minute. Never run alongside another coordinator.
 """
 import argparse
@@ -12,6 +15,7 @@ import importlib.util
 import json
 import logging
 import os
+from datetime import datetime, timezone
 from pathlib import Path
 import re
 import socket
@@ -162,7 +166,19 @@ class Worker:
             stop.set()
             thread.join()
 
-    def run(self, once=False):
+    @staticmethod
+    def due_within(next_run_at, minutes):
+        """True when the next scheduled job starts within `minutes` (live shows run every 5)."""
+        if not next_run_at:
+            return False
+        try:
+            when = datetime.fromisoformat(str(next_run_at).replace("Z", "+00:00"))
+        except ValueError:
+            return False
+        return (when - datetime.now(timezone.utc)).total_seconds() <= minutes * 60
+
+    def run(self, once=False, until_idle=None, max_minutes=None):
+        started = time.monotonic()
         with (self.state / "worker.lock").open("a") as lock:
             try:
                 fcntl.flock(lock, fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -188,9 +204,18 @@ class Worker:
                                 futures.add(pool.submit(self.execute, task))
                             else:
                                 LOG.info("No due work")
+                                if (until_idle is not None and not futures
+                                        and not self.due_within(task.get("next_run_at"), until_idle)):
+                                    LOG.info("Idle: next job %s; exiting", task.get("next_run_at") or "not scheduled")
+                                    return
                         if once:
                             for future in futures:
                                 future.result()
+                            return
+                        if max_minutes and time.monotonic() - started > max_minutes * 60:
+                            for future in futures:
+                                future.result()
+                            LOG.info("Reached the %s-minute limit; Supabase starts a new run if work remains", max_minutes)
                             return
                     except ApiError as exc:
                         LOG.warning("Will retry next minute: %s", exc)
@@ -207,6 +232,9 @@ def main():
     group.add_argument("--preview-week", type=int)
     parser.add_argument("--mode", choices=["get-weeks", "pre-show", "live-show", "post-show", "photos"])
     parser.add_argument("--week-tag")
+    parser.add_argument("--until-idle", type=int, metavar="MINUTES",
+        help="exit when no job is running or due within MINUTES (GitHub Actions)")
+    parser.add_argument("--max-minutes", type=int, help="stop claiming after this many minutes")
     args = parser.parse_args()
     from dotenv import load_dotenv
     load_dotenv(ROOT / ".env")
@@ -219,7 +247,7 @@ def main():
         task = worker.api("preview", week=args.preview_week, mode=args.mode, week_tag=args.week_tag)
         print(worker.scrub(json.dumps(worker.gather(task, preview=True), indent=2)))
     else:
-        worker.run(args.once)
+        worker.run(args.once, until_idle=args.until_idle, max_minutes=args.max_minutes)
 
 
 if __name__ == "__main__":
