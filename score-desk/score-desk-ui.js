@@ -1,4 +1,4 @@
-import { db } from '../supabase-client.js?v=20261015-youtube-video-v113';
+import { db } from '../supabase-client.js?v=20261015-configured-judges-v114';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const authButton = document.querySelector('#adminAuth');

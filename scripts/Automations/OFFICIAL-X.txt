@@ -1,11 +1,37 @@
 WHERE THE WORKER RUNS (2026-10-16)
   GitHub Actions, not the homelab: .github/workflows/dwts-worker.yml runs
-  dwts-worker.py --until-idle 10 whenever Supabase dispatches it (pg_cron job
+  dwts-worker.py --until-idle 10 --max-minutes 330 whenever Supabase dispatches it (pg_cron job
   mirrorball-dispatch-worker → dwts_dispatch_worker(); see
   supabase/add-github-worker-dispatch.sql). Repository secrets:
   DWTS_AUTOMATION_WORKER_SECRET, DWTS_PHOTOS_GITHUB_TOKEN, DWTS_X_BEARER_TOKEN.
   Vault secret github_dispatch_token starts the workflow. The systemd unit below is
   kept as a fallback: disable the dispatcher first (dwts_dispatch_state.enabled).
+  mirrorball-dwts-worker on codys-server is stopped and disabled. Do not restart
+  it while GitHub dispatch is enabled. The runner is pinned to ubuntu-24.04 and
+  the workflow concurrency group dwts-worker allows only one run at a time.
+  The official API path needs only python-dotenv; gallery-dl is not required.
+  Always commit photos with DWTS_PHOTOS_GITHUB_TOKEN, not GITHUB_TOKEN, so that
+  Prepare photo assets runs after uploads.
+
+DATABASE AND WEBSITE CONTRACTS
+  dwts_work_ready() is a read-only mirror of claim_dwts_work's skip rules. Update
+  both if claim eligibility changes. The owner status uses this same predicate;
+  an old heartbeat is normal when no work is due (On demand / GitHub Actions).
+  regular judges come from app_config.regular_judges via regular_judge_names();
+  explicit weekly judge_order still controls Wikipedia score positions.
+  Dances use song_title, song_artist, dance_styles, and save_dance_atomic_v2.
+  song, dance_song_part(), save_dance_atomic(p_song), and dance_types are retired.
+
+  Existing Supabase automations must not be duplicated:
+  - match-dance-songs handles pending Apple Music / Spotify matches.
+  - match-dance-videos handles recent official-channel YouTube matches. Never
+    overwrite youtube_match_status=manual. Other performances are linked with
+    set_dance_youtube_video(dance, link_or_id, rematch). youtube_channel_videos is
+    the channel cache. Dance videos are YouTube embeds; R2 and repo videos retired.
+  - send-push uses push_devices / push_outbox for confirmed scores, draft turns,
+    draft starts, and trade offers / counters.
+  app_config also holds feature switches and the iOS minimum build. Server scoring
+  is get_league_scores(league_id); iOS logs discrepancies in app_diagnostics.
 
 OFFICIAL X PHOTO IMPORTS
 

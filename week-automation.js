@@ -1,4 +1,5 @@
 // Owner-only presentation; all authorization and scheduling remain in SQL.
+import { regularJudgeNames } from './judge-panel.js?v=20261015-configured-judges-v114';
 export const automationModes = [
   ['pre-show', 'Dance types & songs'], ['live-show', 'Judges’ scores'],
   ['post-show', 'Elimination results'], ['photos', 'Couple photos'],
@@ -7,8 +8,8 @@ const escape = (value = '') => String(value ?? '').replace(/[&<>"']/g, (c) => ({
 const date = (value) => value ? new Date(value).toLocaleString('en-US', {timeZone:'America/New_York',month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}) + ' ET' : 'Not yet';
 
 export function judgeOrderFields(guest, order = []) {
-  if (!guest) return '<p class="sub">Regular judge order: Carrie Ann → Derek → Bruno.</p>';
-  const names = ['Carrie Ann', 'Derek', 'Bruno', guest];
+  if (!guest) return `<p class="sub">Regular judge order: ${regularJudgeNames().map(escape).join(' → ')}.</p>`;
+  const names = [...regularJudgeNames(), guest];
   return `<div class="automation-judge-order">${names.map((_, index) => `<label>Judge ${index + 1}<select data-automation-judge><option value="">Select judge</option>${names.map((name) => `<option value="${escape(name)}" ${order[index] === name ? 'selected' : ''}>${escape(name)}</option>`).join('')}</select></label>`).join('')}</div><p class="sub">Match the order of scores in Wikipedia’s table, not the seating order.</p>`;
 }
 
@@ -35,8 +36,9 @@ export function readAutomationFields(root, guest) {
   if (automatic) modes.unshift('get-weeks');
   const order = guest ? [...root.querySelectorAll('[data-automation-judge]')].map((input) => input.value) : null;
   const enabled = root.querySelector('#weekAutomationEnabled').checked;
-  if (guest && order.some(Boolean) && (new Set(order).size !== 4 || order.some((name) => !name))) throw new Error('Select every judge exactly once in Wikipedia order.');
-  if (guest && enabled && modes.includes('live-show') && order.some((name) => !name)) throw new Error('Select Wikipedia’s judge order before enabling guest-judge scores.');
+  const expected = [...regularJudgeNames(), ...(guest ? [guest] : [])];
+  if (guest && order.some(Boolean) && (order.length !== expected.length || new Set(order).size !== expected.length || expected.some((name) => !order.includes(name)))) throw new Error('Select every judge exactly once in Wikipedia order.');
+  if (guest && enabled && modes.includes('live-show') && (order.length !== expected.length || order.some((name) => !name))) throw new Error('Select Wikipedia’s judge order before enabling guest-judge scores.');
   const tag = root.querySelector('#weekWikiTag').value.trim();
   if (!automatic && !tag) throw new Error('Enter the Wikipedia week tag or use automatic discovery.');
   return {enabled, modes, wiki_tag_override:!automatic, wiki_tag:automatic ? null : tag,
@@ -81,11 +83,18 @@ export function automationStatus(data, week) {
   const p = data.progress || {};
   const now = new Date(data.server_time).getTime() || Date.now();
   const heartbeat = new Date(data.worker?.last_heartbeat_at).getTime();
-  const workerState = !heartbeat ? 'Not connected yet' : now - heartbeat < 180000 ? 'Connected' : 'Heartbeat stale';
+  const recent = Number.isFinite(heartbeat) && now - heartbeat < 180000;
+  // SQL uses the dispatcher's read-only mirror of claim_dwts_work, including skips
+  // and missing jobs. Do not infer due work from timestamps alone.
+  const due = data.worker_execution?.work_ready ?? data.jobs?.some((job) => jobStatus(job, data, week, now) === 'Due · awaiting worker');
+  const github = data.worker_execution ? data.worker_execution.mode === 'github_actions' : data.worker?.worker_name === 'github-actions';
+  const workerState = recent ? `Connected${github ? ' (GitHub Actions)' : ''}`
+    : due ? 'Work due · no recent worker check-in'
+    : github ? 'On demand (GitHub Actions)' : 'Idle';
   const names = new Map([['get-weeks','Week discovery'], ...automationModes]);
   return `<details class="week-automation-status"><summary>Automation · ${week.is_complete ? 'Week complete' : data.settings?.enabled ? 'Enabled' : 'Paused'} · ${Number(p.photos || 0)}/${Number(p.total || 0)} couples have photos</summary>
     <div class="automation-progress">${[['dance_types','Dance types'],['songs','Songs'],['scores','Score panels'],['eliminations','Results'],['photos','Photos']].map(([key,label]) => `<span><b>${Number(p[key] || 0)}/${Number(p.total || 0)}</b> ${label}</span>`).join('')}</div>
-    <p class="sub">Counts show confirmed fields; unconfirmed imports are already visible. Worker: ${workerState}. Last heartbeat: ${date(data.worker?.last_heartbeat_at)}.</p>
+    <p class="sub">Counts show confirmed fields; unconfirmed imports are already visible. Worker: <span${!recent && due ? ' class="automation-error"' : ''}>${workerState}</span>. Last heartbeat: ${date(data.worker?.last_heartbeat_at)}.</p>
     <div class="automation-jobs">${[...names].map(([mode,label]) => {const job=data.jobs?.find((j)=>j.mode===mode); return `<div><strong>${label}</strong><span>${escape(job ? jobStatus(job,data,week,now) : week.is_complete ? 'Week complete' : data.settings?.enabled && data.settings.modes?.includes(mode) ? 'Awaiting worker scheduling' : 'Paused')}</span>${job?.last_run ? `<small>Last check: ${date(job.last_run.finished_at || job.last_run.started_at)} · ${escape(job.last_run.status)}</small>` : ''}${mode === 'photos' ? photoDiagnosticsMarkup(job?.last_run?.summary?.photo_diagnostics) : ''}${job?.last_error ? `<small class="automation-error">${escape(job.last_error)}</small>` : ''}</div>`;}).join('')}</div>
     <button type="button" class="secondary" id="refreshWeekAutomation">Refresh status</button>
     <p class="sub">Schedule times are ET. Enablement and job choices carry into the next week unless explicitly overridden there.</p></details>`;

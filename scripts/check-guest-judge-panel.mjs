@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { judgeOrderFor, sortJudgeScores } from '../judge-panel.js';
+import { judgeOrderFor, sortJudgeScores, configureRegularJudges, regularJudgeNames, loadRegularJudges } from '../judge-panel.js';
 import { danceCard, danceDetail, judgePortraitFor, judgeMemberFor } from '../postdraft-view.js';
 
 const week = { number: 5, guest_judge_name: 'Joe Buck',
@@ -13,6 +13,22 @@ assert.deepEqual(judgeOrderFor({}),['Carrie Ann','Derek','Bruno']);
 assert.deepEqual(judgeOrderFor({...week,judge_order:['Joe Buck','Joe Buck']}),['Carrie Ann','Derek','Bruno','Joe Buck']);
 assert.deepEqual(sortJudgeScores(scores,week).map(s=>s.score),[7,8,9,10]);
 assert.equal(scores[0].judge_name,'Bruno','Sorting must not mutate cached data.');
+assert.ok(configureRegularJudges(['Bruno','Carrie Ann','Derek']));
+assert.deepEqual(judgeOrderFor({}),['Bruno','Carrie Ann','Derek'],'Fallback order comes from configuration.');
+assert.deepEqual(judgeOrderFor(week),week.judge_order,'Explicit weekly Wikipedia order remains authoritative.');
+assert.equal(configureRegularJudges(['Judge',' judge ']),false);
+assert.equal(configureRegularJudges([]),false);
+assert.equal(configureRegularJudges([null]),false);
+const copy = regularJudgeNames(); copy.reverse();
+assert.deepEqual(regularJudgeNames(),['Bruno','Carrie Ann','Derek']);
+let configReads = 0;
+const db = {from(table) { assert.equal(table,'app_config'); configReads++; return {
+  select:() => ({eq:(key,value) => {assert.equal(key,'key');assert.equal(value,'regular_judges');
+    return {single:async()=>({data:{value:['Carrie Ann','Derek','Bruno']}})};}}),
+};}};
+await Promise.all([loadRegularJudges(db),loadRegularJudges(db)]);
+assert.equal(configReads,1,'Concurrent renders share a config request.');
+assert.deepEqual(regularJudgeNames(),['Carrie Ann','Derek','Bruno']);
 assert.equal(judgeMemberFor('Joe Buck',[]),null);
 assert.match(judgePortraitFor('Joe Buck','../',week),/^\.\.\/Images\/Cast Thumbnails\/Joe Buck.webp\?/);
 assert.equal(judgePortraitFor('Joe Buck'),'', 'Portrait must be scoped to the guest week.');

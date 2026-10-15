@@ -1,18 +1,18 @@
-import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261015-youtube-video-v113';
-import { db } from './supabase-client.js?v=20261015-youtube-video-v113';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261015-youtube-video-v113';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-youtube-video-v113';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261015-youtube-video-v113';
-import { loadMarketPredictions } from './market-predictions.js?v=20261015-youtube-video-v113';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-youtube-video-v113';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261015-youtube-video-v113';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261015-youtube-video-v113';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261015-youtube-video-v113';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261015-youtube-video-v113';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-youtube-video-v113';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261015-youtube-video-v113';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261015-youtube-video-v113';
-import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261015-youtube-video-v113';
+import { judgeOrderFor, sortJudgeScores, regularJudgeNames, loadRegularJudges } from './judge-panel.js?v=20261015-configured-judges-v114';
+import { db } from './supabase-client.js?v=20261015-configured-judges-v114';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261015-configured-judges-v114';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-configured-judges-v114';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261015-configured-judges-v114';
+import { loadMarketPredictions } from './market-predictions.js?v=20261015-configured-judges-v114';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-configured-judges-v114';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261015-configured-judges-v114';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261015-configured-judges-v114';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261015-configured-judges-v114';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261015-configured-judges-v114';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-configured-judges-v114';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261015-configured-judges-v114';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261015-configured-judges-v114';
+import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261015-configured-judges-v114';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -77,6 +77,7 @@ let scoreDeskLoadVersion = 0;
 let tradeViewMode = 'active';
 let tradeCountdownTimer = null;
 let tradeLoadVersion = 0;
+let authRenderVersion = 0;
 const loadVersions = { roster: 0, teams: 0, standings: 0, settings: 0, rules: 0 };
 
 const friendlyError = (context = 'complete that request') => `We couldn’t ${context}. Please try again.`;
@@ -1348,7 +1349,9 @@ async function prepareNextWeekCompetitiveDances(previousWeek, nextWeek, existing
 async function loadScoreDesk() {
   const loadVersion = ++scoreDeskLoadVersion;
   if ($('#scoreDeskContent')) $('#scoreDeskContent').innerHTML = loadingMarkup('Loading dances');
-  const { data: weeks, error } = await db.from('weeks').select('*').order('number');
+  const [{ data: weeks, error }] = await Promise.all([
+    db.from('weeks').select('*').order('number'), loadRegularJudges(db),
+  ]);
   if (loadVersion !== scoreDeskLoadVersion) return;
   if (error) { console.error(error); return renderLoadError($('#scoreDeskContent'), 'load weeks', loadScoreDesk); }
   const visibleWeeks = isScoreDeskSurface ? weeks : teamPageWeeks(weeks);
@@ -1635,7 +1638,7 @@ async function openWeekLedger(week) {
       if (twoNights && (!airDate || !secondAirDate)) return alert('Choose both airing dates for a two-night week.');
       if (secondAirDate && secondAirDate < airDate) return alert('The second night cannot be before the first night.');
       if ($('#ledgerGuestJudgeEnabled').checked && !guestJudge) return alert('Enter the guest judge’s name.');
-      if (['Carrie Ann', 'Derek', 'Bruno'].some((name) => name.toLowerCase() === guestJudge?.toLowerCase())) return alert('The guest judge needs a different name from the regular judges.');
+      if (regularJudgeNames().some((name) => name.toLowerCase() === guestJudge?.toLowerCase())) return alert('The guest judge needs a different name from the regular judges.');
       const saveButton = $('#saveLedgerWeekDetails');
       saveButton.disabled = true;
       const seasonFinale = $('#ledgerSeasonFinale').checked;
@@ -1679,7 +1682,7 @@ async function openNewWeek() {
     if ($('#twoNightAiring').checked && (!air_date || !second_air_date)) return alert('Choose both airing dates for a two-night week.');
     if (second_air_date && second_air_date < air_date) return alert('The second night cannot be before the first night.');
     if ($('#guestJudgeEnabled').checked && !guest_judge_name) return alert('Enter the guest judge’s name.');
-    if (['Carrie Ann', 'Derek', 'Bruno'].some((name) => name.toLowerCase() === guest_judge_name?.toLowerCase())) return alert('The guest judge needs a different name from the regular judges.');
+    if (regularJudgeNames().some((name) => name.toLowerCase() === guest_judge_name?.toLowerCase())) return alert('The guest judge needs a different name from the regular judges.');
     const createButton = $('#createWeek');
     createButton.disabled = true;
     const { data: week, error: createError } = await db.from('weeks').insert({ number, theme: theme || null, title, air_date, second_air_date, guest_judge_name, double_elimination: $('#doubleElimination').checked, is_finale: $('#isFinale').checked, is_season_finale: $('#isSeasonFinale').checked }).select().single();
@@ -1699,7 +1702,7 @@ async function saveInlineWeek(week, dances) {
   if ($('#twoNightAiring').checked && (!airDate || !secondAirDate)) return alert('Choose both airing dates for a two-night week.');
   if (secondAirDate && secondAirDate < airDate) return alert('The second night cannot be before the first night.');
   if ($('#guestJudgeEnabled').checked && !guestJudge) return alert('Enter the guest judge’s name.');
-  if (['Carrie Ann', 'Derek', 'Bruno'].some((name) => name.toLowerCase() === guestJudge.toLowerCase())) return alert('The guest judge needs a different name from the regular judges.');
+  if (regularJudgeNames().some((name) => name.toLowerCase() === guestJudge.toLowerCase())) return alert('The guest judge needs a different name from the regular judges.');
   const isFinale = $('#isFinale').checked;
   const airStartTime = $('#weekAirStartTime').value;
   const airEndTime = $('#weekAirEndTime').value;
@@ -2040,6 +2043,7 @@ if (isScoreDeskSurface) {
   window.addEventListener('focus', refreshVisibleTrades);
   document.addEventListener('visibilitychange', refreshVisibleTrades);
   window.addEventListener('mirrorball-auth-change', async (event) => {
+    const renderVersion = ++authRenderVersion;
     activeLeagueId = event.detail.leagueId || defaultLeagueId;
     canEdit = event.detail.isCommissioner;
     canManageShow = false;
@@ -2051,6 +2055,8 @@ if (isScoreDeskSurface) {
     managerTeamName = event.detail.teamName || '';
     managerNavLabelMode = event.detail.teamNavLabelMode || 'default';
     managerCustomNavLabel = event.detail.customTeamNavLabel || '';
+    await loadRegularJudges(db);
+    if (renderVersion !== authRenderVersion) return;
     renderLeagueHub(event.detail);
     const showWelcome = !event.detail.signedIn || event.detail.noLeague;
     $('#signedOutOverview').hidden = !showWelcome;

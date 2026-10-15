@@ -15,6 +15,14 @@ assert.match(jobStatus(job,{...data,worker:{photos_not_before:new Date(now+60000
 assert.equal(jobStatus(job,data,{...week,is_complete:true},now),'Week complete');
 assert.match(automationStatus(data,week),/12\/12/);
 assert.match(automationStatus(data,week),/Connected/);
+const onDemand = {...data, worker:{worker_name:'github-actions',last_heartbeat_at:new Date(now-3600000).toISOString()},
+  worker_execution:{mode:'github_actions',work_ready:false}};
+assert.match(automationStatus(onDemand,week),/On demand \(GitHub Actions\)/);
+assert.doesNotMatch(automationStatus(onDemand,week),/Heartbeat stale|no recent worker/);
+assert.match(automationStatus({...onDemand,worker_execution:{mode:'github_actions',work_ready:true}},week),/Work due · no recent worker check-in/);
+assert.match(automationStatus({...onDemand,worker:{}},week),/On demand \(GitHub Actions\)/,'First run is healthy while no work is due.');
+assert.match(automationStatus({...data,worker_execution:{mode:'github_actions',work_ready:true}},week),/Connected \(GitHub Actions\)/);
+assert.match(automationStatus({...onDemand,jobs:[{...job,next_run_at:new Date(now-1000).toISOString()}]},week),/On demand \(GitHub Actions\)/,'SQL readiness overrides stale job timestamps that claim skips.');
 assert.match(automationFields(data,'Guest <script>'),/Guest &lt;script&gt;/);
 assert.ok(!automationFields(data,'Guest <script>').includes('Guest <script>'));
 assert.match(photoDiagnosticsMarkup({outcome:'no_images_downloaded',matched_posts:3,empty_downloads:2}),/downloader produced no images/);

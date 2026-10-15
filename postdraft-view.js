@@ -1,9 +1,9 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261015-youtube-video-v113';
-import { sortJudgeScores } from './judge-panel.js?v=20261015-youtube-video-v113';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261015-configured-judges-v114';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261015-configured-judges-v114';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
-import { guestPhotoPath } from './week-owner-controls.js?v=20261015-youtube-video-v113';
-import { dancePhotoSource } from './dance-images.js?v=20261015-youtube-video-v113';
-import { youtubeVideoFor } from './dance-video.js?v=20261015-youtube-video-v113';
+import { guestPhotoPath } from './week-owner-controls.js?v=20261015-configured-judges-v114';
+import { dancePhotoSource } from './dance-images.js?v=20261015-configured-judges-v114';
+import { youtubeVideoFor } from './dance-video.js?v=20261015-configured-judges-v114';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.
@@ -243,7 +243,7 @@ export function danceCard({ id, kind, title, shortTitle = '', danceType, perform
   const result = extraCast
     ? danceResultRing(`+${extraCast}`, 'Cast', `${extraCast} additional cast members: ${castNames.join(', ')}`, extraCast, 10)
     : scores.length ? danceResultRing(total, 'Judges', `Judges total ${total}`, total,
-      guestJudge || scores.length > 3 ? 40 : 30) : '';
+      Math.max(judgeOrderFor(week).length, scores.length, guestJudge ? 4 : 0) * 10) : '';
   const prediction = weeklyPrediction
     ? `<span class="dance-prediction-metric" role="img" aria-label="Week ${Number(weekNumber)} elimination prediction ${marketPercent(weeklyPrediction.percent)}" title="Week ${Number(weekNumber)} elimination prediction">${predictionRing(weeklyPrediction.percent, 'risk', 'small', weeklyPrediction.relative_position)}<small>Elim</small></span>`
     : weekNumber ? '<span class="dance-prediction-metric" role="img" aria-label="Elimination prediction to be announced" title="Elimination prediction to be announced"><span class="prediction-ring prediction-ring-tba prediction-ring-small"><strong>TBA</strong></span><small>Elim</small></span>' : '';
