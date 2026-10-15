@@ -78,24 +78,30 @@ assert.equal(danceImagesFor(3, 'Troupe').length, 0, 'A different performance tit
 const videos = manifestEntries.filter((item) => item.path.startsWith('Videos/'));
 const expectedVideoCount = readdirSync('Videos/Dances', { withFileTypes: true })
   .filter((item) => item.isDirectory() && /^Week \d+$/.test(item.name))
-  .reduce((count, item) => count + readdirSync(`Videos/Dances/${item.name}`).filter((name) => /\.webm$/i.test(name)).length, 0);
+  .reduce((count, item) => count + readdirSync(`Videos/Dances/${item.name}`).filter((name) => /\.mp4$/i.test(name)).length, 0);
 assert.equal(videos.length, expectedVideoCount);
-assert.ok(videos.every((item) => item.path.endsWith('.webm')));
-assert.match(danceVideoFor(1, 'Amber Glenn & Pasha Pashkov', 2), /media\.githubusercontent\.com\/media\/.*Amber%20Glenn%20and%20Pasha%20Pashkov\.webm/);
+assert.ok(videos.every((item) => item.path.endsWith('.mp4')));
+assert.match(danceVideoFor(1, 'Amber Glenn & Pasha Pashkov', 2), /mirrorball-media\.codys-server\.net\/Videos\/Dances\/Week%201\/Amber%20Glenn%20and%20Pasha%20Pashkov\.mp4/);
 assert.equal(danceVideoFor(1, 'Amber Glenn & Pasha Pashkov', 1), '');
 assert.match(danceVideoFor(1, 'Conner Leavitt & Adele Zaikman', 1), /Connor%20Leavitt%20and%20Adele%20Zaikman/);
 assert.match(danceVideoFor(1, 'Connor Wood & Rylee Arnold', 1), /Connor%20Wood%20and%20Rylee%20Arnold/);
 assert.notEqual(danceVideoFor(1, 'Conner Leavitt & Adele Zaikman', 1), danceVideoFor(1, 'Connor Wood & Rylee Arnold', 1));
-assert.match(danceVideoFor(2, 'Guillermo Rodriguez & Witney Carson'), /Guillermo%20Rodriguez%20and%20Witney\.webm/);
-assert.match(danceVideoFor(1, 'Female Stars Preview', 1), /Female%20Stars%20Preview\.webm/);
+assert.match(danceVideoFor(2, 'Guillermo Rodriguez & Witney Carson'), /Guillermo%20Rodriguez%20and%20Witney\.mp4/);
+assert.match(danceVideoFor(1, 'Female Stars Preview', 1), /Female%20Stars%20Preview\.mp4/);
 assert.equal(danceVideoFor(1, 'Female Stars Preview', 2), '');
 assert.equal(danceVideoFor(5, 'Amber Glenn & Pasha Pashkov'), '');
-const nightVideos = [{ path: 'Videos/Dances/Week 1/Opening Number-Night 1.webm', sha: 'n1' },
-  { path: 'Videos/Dances/Week 1/Opening Number-Night 2.webm', sha: 'n2' }];
+const nightVideos = [{ path: 'Videos/Dances/Week 1/Opening Number-Night 1.mp4', sha: 'n1' },
+  { path: 'Videos/Dances/Week 1/Opening Number-Night 2.mp4', sha: 'n2' }];
 await refreshDanceImages({ force: true, fetcher: async () => ({ ok: true, json: async () => ({ tree: nightVideos }) }) });
 assert.match(danceVideoFor(1, 'Opening Number', 1), /Night%201/);
 assert.match(danceVideoFor(1, 'Opening Number', 2), /Night%202/);
 assert.equal(danceVideoFor(1, 'Opening Number'), '');
+await refreshDanceImages({ force: true, fetcher: async () => ({ ok: true, json: async () => ({ tree: [
+  { path: 'Videos/Dances/Week 2/Legacy Clip.webm', sha: 'legacy' },
+  { path: 'Videos/Dances/Week 2/MP4 Clip.mp4', sha: 'current' },
+] }) }) });
+assert.equal(danceVideoFor(2, 'Legacy Clip'), '', 'WebM files must not appear as playable videos.');
+assert.equal(danceVideoFor(2, 'MP4 Clip'), 'https://mirrorball-media.codys-server.net/Videos/Dances/Week%202/MP4%20Clip.mp4?v=current');
 console.log('Existing and automatically discovered dance photos verified.');
 const sourcePath = 'Images/Dances/Week 5/Amber Glenn and Pasha Pashkov-1.jpeg';
 await refreshDanceImages({ force: true, fetcher: async () => ({ ok: true,

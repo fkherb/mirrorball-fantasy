@@ -1,5 +1,5 @@
-import { db } from './supabase-client.js?v=20261014-owner-controls-v111';
-import { prepareProfilePicture } from './profile-picture.js?v=20261014-owner-controls-v111';
+import { db } from './supabase-client.js?v=20261015-r2-video-v112';
+import { prepareProfilePicture } from './profile-picture.js?v=20261015-r2-video-v112';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const buttons = [...document.querySelectorAll('nav button[data-view]')];

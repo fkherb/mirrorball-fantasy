@@ -1,12 +1,12 @@
-import { db } from './supabase-client.js?v=20261014-owner-controls-v111';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261014-owner-controls-v111';
-import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261014-owner-controls-v111';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261014-owner-controls-v111';
-import { loadMarketPredictions } from './market-predictions.js?v=20261014-owner-controls-v111';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261014-owner-controls-v111';
-import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261014-owner-controls-v111';
-import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261014-owner-controls-v111';
-import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261014-owner-controls-v111';
+import { db } from './supabase-client.js?v=20261015-r2-video-v112';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-r2-video-v112';
+import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261015-r2-video-v112';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-r2-video-v112';
+import { loadMarketPredictions } from './market-predictions.js?v=20261015-r2-video-v112';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-r2-video-v112';
+import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261015-r2-video-v112';
+import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261015-r2-video-v112';
+import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261015-r2-video-v112';
 
 const $ = (selector) => document.querySelector(selector);
 const safe = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({

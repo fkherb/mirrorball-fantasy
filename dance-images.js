@@ -21,9 +21,9 @@ export function couplePhotoFor(title) {
   const name = couplePhotoNamesByPair.get(key(title));
   return name ? `Images/Couples/${encodeURIComponent(name)}.avif` : '';
 }
-const { treeUrl, rawRoot, repository } = photoRepositoryEndpoints(import.meta.url);
+const { treeUrl, rawRoot } = photoRepositoryEndpoints(import.meta.url);
 const manifestUrls = [`${rawRoot}dance-photo-manifest.json`, new URL('./dance-photo-manifest.json', import.meta.url).href];
-const storageKey = 'mirrorball-dance-photos-v3';
+const storageKey = 'mirrorball-dance-photos-v4';
 const refreshMs = 5 * 60 * 1000;
 let uploadedPhotos = new Map();
 let uploadedCards = new Map();
@@ -37,14 +37,14 @@ const photoKey = (week, title, night = null) => `${week}:${key(title)}${night ? 
 const photoUrl = (path, sha) => `${rawRoot}${path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(sha)}`;
 const originalPattern = /^Images\/Dances\/Week (\d+)\/(.+?)(?:-Night ([12]))?-(\d+)\.(jpe?g|png|webp)$/i;
 const cardPattern = /^Images\/Dances\/Card\/Week (\d+)\/(.+?)(?:-Night ([12]))?-(\d+)\.webp$/i;
-const videoPattern = /^Videos\/Dances\/Week (\d+)\/(.+?)(?:-Night ([12]))?\.webm$/i;
+const videoPattern = /^Videos\/Dances\/Week (\d+)\/(.+?)(?:-Night ([12]))?\.mp4$/i;
 // Exact partnership aliases only: Connor Wood must never match Conner Leavitt.
 const videoName = (title) => key(title)
   .replace(/^connor leavitt and adele zaikman$/, 'conner leavitt and adele zaikman')
   .replace(/^guillermo rodriguez and witney$/, 'guillermo rodriguez and witney carson');
 const videoKey = (week, title, night = null) => photoKey(week, videoName(title), night);
-// GitHub Pages serves LFS pointers, not video bytes. Use the public LFS media host.
-const videoUrl = (path, sha) => `https://media.githubusercontent.com/media/${repository}/main/${path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(sha)}`;
+// The repository indexes filenames only; playback bytes come from the R2 media host.
+const videoUrl = (path, sha) => `https://mirrorball-media.codys-server.net/${path.split('/').map(encodeURIComponent).join('/')}?v=${encodeURIComponent(sha)}`;
 const uploadedFor = (map, week, title, night) => {
   return map.get(photoKey(week, title, [1, 2].includes(Number(night)) ? Number(night) : null)) || null;
 };

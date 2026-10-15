@@ -1,8 +1,8 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261014-owner-controls-v111';
-import { sortJudgeScores } from './judge-panel.js?v=20261014-owner-controls-v111';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261015-r2-video-v112';
+import { sortJudgeScores } from './judge-panel.js?v=20261015-r2-video-v112';
 import { avatarImageStyle } from './cast-avatar-frame.js?v=20260930-crisp-rings-v81';
-import { guestPhotoPath } from './week-owner-controls.js?v=20261014-owner-controls-v111';
-import { dancePhotoSource, danceVideoFor } from './dance-images.js?v=20261014-owner-controls-v111';
+import { guestPhotoPath } from './week-owner-controls.js?v=20261015-r2-video-v112';
+import { dancePhotoSource, danceVideoFor } from './dance-images.js?v=20261015-r2-video-v112';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.
@@ -372,7 +372,7 @@ export function danceGallery({ title, photos = [], placeholderPhoto = '', video 
   const photoItems = photos.map((photo, index) => `<button type="button" data-dance-gallery-photo="${html(photo)}" aria-label="Show photo ${index + 1} of ${photos.length}" aria-pressed="${index === 0}" class="${index === 0 ? 'selected' : ''}"><img src="${html(photo)}" alt="" loading="lazy"></button>`).join('');
   const videoItem = video ? `<button type="button" data-dance-gallery-video aria-label="Show dance video" aria-pressed="${!firstPhoto}" class="dance-gallery-video-thumb ${!firstPhoto ? 'selected' : ''}"><span aria-hidden="true">▶</span><small>Video</small></button>` : '';
   const rail = photos.length + (video ? 1 : 0) > 1 ? `<div class="dance-gallery-rail" role="group" aria-label="Performance photos and video">${photoItems}${videoItem}</div>` : '';
-  return `<div class="dance-detail-gallery"><div class="dance-gallery-stage"><img class="dance-gallery-backdrop"${firstPhoto ? ` src="${html(firstPhoto)}"` : ' hidden'} alt="" aria-hidden="true" decoding="async"><img class="dance-gallery-main"${firstPhoto ? ` src="${html(firstPhoto)}"` : ' hidden'} alt="${html(title)} ${photos.length ? 'performing' : 'couple portrait'}" decoding="async">${video ? `<video class="dance-gallery-video" data-src="${html(video)}" controls playsinline preload="none" aria-label="${html(title)} dance video"${firstPhoto ? ' hidden' : ''}${photos[0] || placeholderPhoto ? ` poster="${html(photos[0] || placeholderPhoto)}"` : ''}></video>` : ''}</div>${rail}${video ? `<p class="dance-gallery-video-error" hidden>This WebM video couldn’t play here. <a href="${html(video)}" target="_blank" rel="noopener noreferrer">Open video</a></p>` : ''}</div>`;
+  return `<div class="dance-detail-gallery"><div class="dance-gallery-stage"><img class="dance-gallery-backdrop"${firstPhoto ? ` src="${html(firstPhoto)}"` : ' hidden'} alt="" aria-hidden="true" decoding="async"><img class="dance-gallery-main"${firstPhoto ? ` src="${html(firstPhoto)}"` : ' hidden'} alt="${html(title)} ${photos.length ? 'performing' : 'couple portrait'}" decoding="async">${video ? `<video class="dance-gallery-video" data-src="${html(video)}" controls playsinline preload="none" aria-label="${html(title)} dance video"${firstPhoto ? ' hidden' : ''}${photos[0] || placeholderPhoto ? ` poster="${html(photos[0] || placeholderPhoto)}"` : ''}></video>` : ''}</div>${rail}${video ? `<p class="dance-gallery-video-error" hidden>This video couldn’t play here. <a href="${html(video)}" target="_blank" rel="noopener noreferrer">Open video</a></p>` : ''}</div>`;
 }
 
 export function danceDetail({ kind, title, danceType, performanceType, songTitle, songArtist, choreography, scores, scoreImage, judgePhoto, judgeMember, teams, castRows, imageFor, photos = [], placeholderPhoto = '', weekNumber = null, airingNight = null, weeklyPrediction = null, week = {}, video = null }) {

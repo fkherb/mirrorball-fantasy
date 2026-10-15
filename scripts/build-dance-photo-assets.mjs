@@ -83,7 +83,7 @@ for (const folder of folders) {
   }
 }
 
-// Index videos without transcoding them. Hash hydrated files and LFS pointers
+// Index MP4 filenames for R2 playback without transcoding them. Hash files and LFS pointers
 // identically, so checks work both locally and in a checkout without LFS downloads.
 const videoRoot = new URL('../Videos/Dances/', import.meta.url);
 let videoFolders = [];
@@ -91,7 +91,7 @@ try { videoFolders = await readdir(videoRoot, { withFileTypes: true }); }
 catch (error) { if (error.code !== 'ENOENT') throw error; }
 for (const folder of videoFolders.filter((item) => item.isDirectory() && /^Week \d+$/.test(item.name))) {
   const directory = new URL(`${encodeURIComponent(folder.name)}/`, videoRoot);
-  for (const filename of (await readdir(directory)).filter((name) => /\.webm$/i.test(name)).sort()) {
+  for (const filename of (await readdir(directory)).filter((name) => /\.mp4$/i.test(name)).sort()) {
     const video = new URL(encodeURIComponent(filename), directory);
     const handle = await open(video);
     let prefix;

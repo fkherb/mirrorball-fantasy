@@ -6,17 +6,17 @@ import { avatarFrameFor, avatarImageStyle } from '../cast-avatar-frame.js';
 import { couplePhotoFrameFor, couplePhotoStyle } from '../couple-photo-frame.js';
 
 const member = { id: 'cast-1', name: 'A & B', image_position: 0 };
-const videoGallery = danceGallery({ title: 'Test', photos: ['/one.jpg', '/two.jpg'], video: '/dance.webm' });
+const videoGallery = danceGallery({ title: 'Test', photos: ['/one.jpg', '/two.jpg'], video: '/dance.mp4' });
 assert.ok(videoGallery.indexOf('data-dance-gallery-video') > videoGallery.lastIndexOf('data-dance-gallery-photo'));
-assert.match(videoGallery, /<video[^>]*data-src="\/dance.webm"[^>]*controls playsinline preload="none"[^>]*hidden/);
+assert.match(videoGallery, /<video[^>]*data-src="\/dance.mp4"[^>]*controls playsinline preload="none"[^>]*hidden/);
 assert.doesNotMatch(videoGallery, /autoplay|type="video\/mp4"/);
 assert.equal((videoGallery.match(/data-dance-gallery-video/g) || []).length, 1);
-const videoOnly = danceGallery({ title: 'Test', video: '/only.webm' });
-assert.match(videoOnly, /<video[^>]*data-src="\/only.webm"/);
+const videoOnly = danceGallery({ title: 'Test', video: '/only.mp4' });
+assert.match(videoOnly, /<video[^>]*data-src="\/only.mp4"/);
 assert.doesNotMatch(videoOnly, /<video[^>]*hidden|src=""/);
 assert.equal(danceGallery({ title: 'Empty' }), '');
 assert.doesNotMatch(danceGallery({ title: 'Photos', photos: ['/one.jpg'] }), /<video|Video/);
-assert.match(danceGallery({ title: 'A " B', video: '/x.webm?test="value' }), /&quot;/);
+assert.match(danceGallery({ title: 'A " B', video: '/x.mp4?test="value' }), /&quot;/);
 const rows = [{ member, role: 'Pro', displayRole: 'Pro', appearanceRate: 1,
   official: 30, appearances: 2, total: 32 }];
 
