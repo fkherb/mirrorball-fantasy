@@ -21,7 +21,8 @@ const uploadedUrls = [...uploadedDancePhotos(manifestEntries).values()].flat();
 for (const week of [1, 2, 3]) {
   const folder = `Images/Dances/Week ${week}`;
   for (const filename of readdirSync(folder)) {
-    if (filename.startsWith('Elimination-') || filename.endsWith('.source.json')) continue;
+    // Skip results-night photos, sidecars and Finder files (.DS_Store isn't tracked).
+    if (filename.startsWith('.') || filename.startsWith('Elimination-') || filename.endsWith('.source.json')) continue;
     assert.ok(uploadedUrls.some((url) => decodeURIComponent(url.split('?')[0]).endsWith(`${folder}/${filename}`)),
       `Unmapped: ${filename}`);
   }
