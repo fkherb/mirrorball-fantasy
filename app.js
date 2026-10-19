@@ -1,18 +1,22 @@
-import { judgeOrderFor, sortJudgeScores, regularJudgeNames, loadRegularJudges } from './judge-panel.js?v=20261015-configured-judges-v114';
-import { db } from './supabase-client.js?v=20261015-configured-judges-v114';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261015-configured-judges-v114';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-configured-judges-v114';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261015-configured-judges-v114';
-import { loadMarketPredictions } from './market-predictions.js?v=20261015-configured-judges-v114';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-configured-judges-v114';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261015-configured-judges-v114';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261015-configured-judges-v114';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261015-configured-judges-v114';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261015-configured-judges-v114';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-configured-judges-v114';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261015-configured-judges-v114';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261015-configured-judges-v114';
-import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261015-configured-judges-v114';
+import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261019-app-parity-v115';
+import { observeResults, configureSpoilers } from './spoiler-settings.js?v=20261019-app-parity-v115';
+import { competitiveAwards } from './scoring.js?v=20261019-app-parity-v115';
+let appAccess = {};
+import { judgeOrderFor, sortJudgeScores, regularJudgeNames, loadRegularJudges } from './judge-panel.js?v=20261019-app-parity-v115';
+import { db } from './supabase-client.js?v=20261019-app-parity-v115';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261019-app-parity-v115';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261019-app-parity-v115';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261019-app-parity-v115';
+import { loadMarketPredictions } from './market-predictions.js?v=20261019-app-parity-v115';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261019-app-parity-v115';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261019-app-parity-v115';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261019-app-parity-v115';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261019-app-parity-v115';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261019-app-parity-v115';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261019-app-parity-v115';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261019-app-parity-v115';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261019-app-parity-v115';
+import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261019-app-parity-v115';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -213,6 +217,7 @@ window.alert = (message) => {
 document.addEventListener('click', (event) => {
   const button = event.target.closest('button');
   if (!button || button.disabled) return;
+  if (button.closest('#primaryNav, #experienceSheet, #appHomeFeed, .home-actions, .home-footer, #modalClose, [data-reveal-results], .dance-discovery-actions')) return;
   if (button.dataset.clickLock === 'true') { event.preventDefault(); event.stopImmediatePropagation(); return; }
   button.dataset.clickLock = 'true';
   window.setTimeout(() => { if (button.isConnected) delete button.dataset.clickLock; }, 700);
@@ -664,18 +669,19 @@ async function loadStandings() {
   const loadVersion = ++loadVersions.standings;
   $('#standingsContent').innerHTML = loadingMarkup('Loading standings');
   if ($('#publicTeamResults')) $('#publicTeamResults').innerHTML = loadingMarkup('Loading your team');
-  const [teamsResult, membersResult, rolesResult, partnershipsResult, weeksResult, dancesResult, scoresResult, appearancesResult] = await Promise.all([
+  const [teamsResult, membersResult, rolesResult, partnershipsResult, weeksResult, dancesResult, scoresResult, appearancesResult, castChangesResult] = await Promise.all([
     db.from('fantasy_teams').select('id,manager_name,team_name').eq('league_id', defaultLeagueId).order('manager_name'),
     db.from('cast_members').select('*').order('name'),
     db.from('roles').select('name,appearance_points'),
     db.from('partnerships').select('id,star_id,pro_id'),
     db.from('weeks').select('*').order('number'),
-    db.from('dances').select('id,kind,partnership_id,week_id'),
-    db.from('dance_judge_scores').select('dance_id,score'),
+    db.from('dances').select('*').order('sort_order'),
+    db.from('dance_judge_scores').select('dance_id,judge_name,score'),
     db.from('dance_appearances').select('id,dance_id,cast_member_id'),
+    db.from('dance_cast_changes').select('dance_id,cast_member_id,replacement_cast_member_id,reason,description'),
   ]);
   if (loadVersion !== loadVersions.standings) return;
-  const error = [teamsResult, membersResult, rolesResult, partnershipsResult, weeksResult, dancesResult, scoresResult, appearancesResult].find((result) => result.error)?.error;
+  const error = [teamsResult, membersResult, rolesResult, partnershipsResult, weeksResult, dancesResult, scoresResult, appearancesResult, castChangesResult].find((result) => result.error)?.error;
   if (error) {
     console.error(error);
     renderLoadError($('#standingsContent'), 'load standings', loadStandings);
@@ -702,7 +708,7 @@ async function loadStandings() {
   const managerMap = await getTeamManagerMap();
   if (loadVersion !== loadVersions.standings) return;
   const displayTeams = teamsResult.data.map((team) => ({ ...team, manager_name: managerNameFor(team, managerMap) }));
-  const data = { teams: displayTeams, members: membersResult.data, roles: rolesResult.data, partnerships: partnershipsResult.data, weeks: weeksResult.data, dances: dancesResult.data, scores: scoresResult.data, appearances: appearancesResult.data, rosterSnapshots };
+  const data = { teams: displayTeams, members: membersResult.data, roles: rolesResult.data, partnerships: partnershipsResult.data, weeks: weeksResult.data, dances: dancesResult.data, scores: scoresResult.data, appearances: appearancesResult.data, rosterSnapshots, castChanges: castChangesResult.data, isOriginalLeague: true };
   const { teams, members, weeks, memberPoints, weekMemberPoints } = calculateLeaguePoints(data);
   const snapshotTeamByWeekMember = new Map(rosterSnapshots.map((snapshot) => [`${snapshot.week_id}:${snapshot.cast_member_id}`, snapshot.fantasy_team_id]));
   const snapshotByWeekMember = new Map(rosterSnapshots.map((snapshot) => [`${snapshot.week_id}:${snapshot.cast_member_id}`, snapshot]));
@@ -733,6 +739,16 @@ async function loadStandings() {
   standingsSnapshot.teamRows = teamRows;
   standingsSnapshot.latestWeek = latestWeek;
   standingsSnapshot.weekTotals = weekTotals;
+  if (!isOwnerSurface) {
+    const homeData = { ...data, cast: data.members, pairs: data.partnerships, marketPredictions: await loadMarketPredictions() };
+    if (loadVersion !== loadVersions.standings) return;
+    observeResults(homeData);
+    updateAppExperience({ context: appAccess, data: homeData,
+      totals: new Map(teamRows.map((row) => [row.team.id, row.total])),
+      weekTotals: new Map([...weekTotals].map(([id, value]) => [`${latestWeek?.id}:${id}`, value])),
+      openDance: async (id) => { const dance = data.dances.find((item) => item.id === id); if (!dance) return; selectedWeekId = dance.week_id; document.querySelector('nav [data-view="score"]').click(); await loadScoreDesk(); document.querySelector(`[data-dance-detail="${id}"]`)?.click(); },
+      openCast: (id) => openCastDetail(id) });
+  }
   const nextWeek = weeks.find((week) => !week.is_complete && (!latestWeek || week.number > latestWeek.number));
   const focusWeek = nextWeek || latestWeek;
   const focusDances = dancesResult.data.filter((dance) => dance.week_id === focusWeek?.id && dance.kind === 'competitive');
@@ -788,7 +804,7 @@ function renderStandingsCards() {
   if (!controls) {
     controls = document.createElement('div');
     controls.id = 'standingsMode';
-    $('#memberOverview .overview-layout').before(controls);
+    $('.overview-layout').before(controls);
   }
   controls.hidden = false;
   controls.innerHTML = standingsSwitch(standingsMode, latestWeek);
@@ -854,7 +870,7 @@ function teamScoreBreakdown(teamId, weekId = 'all') {
     }, { official: 0, appearances: 0, appearanceCount: 0, appearanceRates: [] });
     const snapshot = selectedWeeks.length === 1 ? snapshotByWeekMember.get(`${selectedWeeks[0].id}:${member.id}`) : null;
     const role = selectedWeeks.length === 1 ? snapshot?.cast_role || roleForWeek(member, selectedWeeks[0], weeks) : member.role;
-    const appearanceRate = sharedAppearanceRate(member, snapshot, roleRates);
+    const appearanceRate = sharedAppearanceRate(member, snapshot, roleRates, true);
     return { member, role, appearanceRate, ...sources, total: sources.official + sources.appearances };
   }).sort((a, b) => b.total - a.total || a.member.name.localeCompare(b.member.name));
   return { rows, total: rows.reduce((sum, row) => sum + row.total, 0) };
@@ -881,7 +897,7 @@ function overviewTeamDetailMarkup(row) {
 }
 
 function overviewUsesSplitLayout() {
-  return ($('#standings')?.classList.contains('active') && $('.overview-layout')?.getBoundingClientRect().width >= 1030);
+  return ($('#league')?.classList.contains('active') && $('.overview-layout')?.getBoundingClientRect().width >= 1030);
 }
 
 function renderOverviewTeamDetail() {
@@ -1397,20 +1413,21 @@ async function loadScoreDesk() {
   ]) : [{ data: [], error: null }, { data: [], error: null }];
   if (loadVersion !== scoreDeskLoadVersion) return;
   if (judgeError || appearanceError) { console.error(judgeError || appearanceError); return renderLoadError($('#scoreDeskContent'), 'load dance scoring', loadScoreDesk); }
-  const [pairResult, roleResult, snapshotResult, predictions] = await Promise.all([
+  const [pairResult, roleResult, snapshotResult, predictions, castChangesResult] = await Promise.all([
     getPairingData().then((data) => ({ data })).catch((error) => ({ error })),
     db.from('roles').select('name,appearance_points'),
     week.is_complete ? db.from('weekly_roster_snapshots').select('*').eq('league_id', defaultLeagueId).eq('week_id', week.id) : Promise.resolve({ data: [], error: null }),
     isScoreDeskSurface ? Promise.resolve([]) : loadMarketPredictions(),
+    db.from('dance_cast_changes').select('dance_id,cast_member_id,replacement_cast_member_id,reason,description'),
   ]);
   if (loadVersion !== scoreDeskLoadVersion) return;
-  const detailError = pairResult.error || roleResult.error || snapshotResult.error;
+  const detailError = pairResult.error || roleResult.error || snapshotResult.error || castChangesResult.error;
   if (detailError) {
     console.error(detailError);
     renderLoadError($('#scoreDeskContent'), week.is_complete ? 'load this week’s historical details' : 'load dance details', loadScoreDesk);
     return;
   }
-  const pairData = pairResult.data;
+  const pairData = { ...pairResult.data, castChanges: castChangesResult.data, dances: standingsSnapshot?.dances || dances, scores: standingsSnapshot?.scores || judgeScores };
   const danceDetailContext = { roles: roleResult.data || [], snapshots: snapshotResult.data || [], predictions };
   const scoresForDance = (danceId) => sortJudgeScores(judgeScores.filter((score) => score.dance_id === danceId), week);
   const labelForDance = (dance, index) => {
@@ -1533,9 +1550,14 @@ function openDanceDetail(week, dance, index, pairData, scores, cast, context = {
   const scoreTotal = scores.reduce((sum, score) => sum + Number(score.score || 0), 0);
   const contributions = new Map();
   const addContribution = (member, points) => { if (member) contributions.set(member.id, (contributions.get(member.id) || 0) + points); };
-  if (dance.kind === 'competitive') { addContribution(star, scoreTotal); addContribution(pro, scoreTotal); }
-  cast.forEach((member) => addContribution(member, appearanceValue(member, roleMap, week, pairData.weeks || [week], snapshotMap.get(member.id))));
-  const allCast = [...new Map([star, pro, ...cast].filter(Boolean).map((member) => [member.id, member])).values()];
+  const totalsByDance = new Map();
+  for (const score of pairData.scores || scores) totalsByDance.set(score.dance_id, (totalsByDance.get(score.dance_id) || 0) + Number(score.score || 0));
+  totalsByDance.set(dance.id, scoreTotal);
+  const competitive = competitiveAwards({ dances: pairData.dances || [dance], partnerships: pairData.partnerships, castChanges: pairData.castChanges || standingsSnapshot?.castChanges || [] }, totalsByDance);
+  const awards = competitive.awards.filter((award) => award.danceId === dance.id);
+  for (const award of awards) addContribution(pairData.players.find((member) => member.id === award.castId), award.points);
+  cast.forEach((member) => { if (!competitive.skippedAppearances.has(`${dance.id}:${member.id}`)) addContribution(member, appearanceValue(member, roleMap, week, pairData.weeks || [week], snapshotMap.get(member.id), true)); });
+  const allCast = [...new Map([star, pro, ...awards.map((award) => pairData.players.find((member) => member.id === award.castId)), ...cast].filter(Boolean).map((member) => [member.id, member])).values()];
   const detailRows = allCast.map((member) => {
     const snapshot = snapshotMap.get(member.id);
     const teamId = snapshot?.fantasy_team_id ?? member.fantasy_team_id;
@@ -1562,6 +1584,7 @@ function openDanceDetail(week, dance, index, pairData, scores, cast, context = {
     imageFor: displayImagePath })}`);
   $('#danceBackToProfile')?.addEventListener('click', context.backAction);
   bindDanceGallery($('#modalBody'));
+  if (!isOwnerSurface) enhanceDanceDetail($('#modalBody'), dance, { ...(standingsSnapshot || {}), cast: pairData.players, pairs: pairData.partnerships, dances: standingsSnapshot?.dances || [dance], scores: standingsSnapshot?.scores || scores }, () => openDanceDetail(week, dance, index, pairData, scores, cast, context));
   document.querySelectorAll('[data-dance-cast-profile]').forEach((button) => button.addEventListener('click', () => openCastDetail(button.dataset.danceCastProfile, null, () => openDanceDetail(week, dance, index, pairData, scores, cast, context))));
 }
 
@@ -1604,7 +1627,7 @@ async function openWeekLedger(week) {
       const role = snapshot?.cast_role || roleForWeek(member, week, weeksResult.data);
       const team = teamById.get(snapshot?.fantasy_team_id ?? member.fantasy_team_id)
         || (snapshot ? { manager_name: snapshot.manager_name, team_name: snapshot.team_name } : null);
-      const rate = sharedAppearanceRate(member, snapshot, rateByName);
+      const rate = sharedAppearanceRate(member, snapshot, rateByName, true);
       return { member, role, team, rate, ...entry, total: entry.official + entry.appearances };
     }).sort((a, b) => b.total - a.total || a.member.name.localeCompare(b.member.name));
     const total = rows.reduce((sum, row) => sum + row.total, 0);
@@ -2044,6 +2067,8 @@ if (isScoreDeskSurface) {
   document.addEventListener('visibilitychange', refreshVisibleTrades);
   window.addEventListener('mirrorball-auth-change', async (event) => {
     const renderVersion = ++authRenderVersion;
+    appAccess = event.detail;
+    configureSpoilers(event.detail.userId, isOwnerSurface);
     activeLeagueId = event.detail.leagueId || defaultLeagueId;
     canEdit = event.detail.isCommissioner;
     canManageShow = false;
@@ -2089,4 +2114,5 @@ if (isScoreDeskSurface) {
     loadRules();
   });
   window.addEventListener('mirrorball-account-open', (event) => renderLeagueHub(event.detail));
+  window.addEventListener('mirrorball-refresh-presentation', () => { if (!isOwnerSurface && !appAccess.useSharedWorkspace && appAccess.signedIn) { loadStandings(); loadScoreDesk(); } });
 }

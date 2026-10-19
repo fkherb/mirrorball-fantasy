@@ -1,4 +1,4 @@
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261015-configured-judges-v114';
+import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261019-app-parity-v115';
 
 const escape = (value = '') => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const normalizedName = (name = '') => name.trim().replace(/\s+/g, ' ');

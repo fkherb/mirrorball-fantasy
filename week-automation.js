@@ -1,5 +1,5 @@
 // Owner-only presentation; all authorization and scheduling remain in SQL.
-import { regularJudgeNames } from './judge-panel.js?v=20261015-configured-judges-v114';
+import { regularJudgeNames } from './judge-panel.js?v=20261019-app-parity-v115';
 export const automationModes = [
   ['pre-show', 'Dance types & songs'], ['live-show', 'Judges’ scores'],
   ['post-show', 'Elimination results'], ['photos', 'Couple photos'],

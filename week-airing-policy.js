@@ -1,4 +1,4 @@
-import { airingWindows, easternDateTime } from './market-prediction-model.js?v=20261006-airing-completion-v98';
+import { airingWindows, easternDateTime } from './market-prediction-model.js?v=20261019-app-parity-v115';
 
 export function isTradeAiringLocked(weeks, now = Date.now()) {
   const clock = easternDateTime(now);

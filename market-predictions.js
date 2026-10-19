@@ -1,4 +1,4 @@
-import { db } from './supabase-client.js?v=20261006-airing-completion-v98';
+import { db } from './supabase-client.js?v=20261019-app-parity-v115';
 
 let cached = [];
 let loadedAt = 0;

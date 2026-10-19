@@ -1,7 +1,9 @@
-import { db } from './supabase-client.js?v=20261015-configured-judges-v114';
-import { prepareProfilePicture } from './profile-picture.js?v=20261015-configured-judges-v114';
+import { db } from './supabase-client.js?v=20261019-app-parity-v115';
+import { prepareProfilePicture } from './profile-picture.js?v=20261019-app-parity-v115';
+import { initializeAppExperience } from './app-experience.js?v=20261019-app-parity-v115';
 
 document.addEventListener('DOMContentLoaded', async () => {
+  initializeAppExperience();
   const buttons = [...document.querySelectorAll('nav button[data-view]')];
   const views = [...document.querySelectorAll('.view')];
   const navToggle = document.querySelector('#navToggle');
@@ -25,7 +27,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     setNavCollapsed(collapsed);
     localStorage.setItem(navStateKey, collapsed ? 'collapsed' : 'expanded');
   });
-  const rememberedViews = new Set(['standings', 'teams', 'score', 'league']);
+  const rememberedViews = new Set(['standings', 'teams', 'score', 'league', 'leagues']);
   const storedView = localStorage.getItem('mirrorball-active-view');
   let requestedView = rememberedViews.has(location.hash.slice(1))
     ? location.hash.slice(1)
@@ -35,14 +37,20 @@ document.addEventListener('DOMContentLoaded', async () => {
     views.forEach((view) => view.classList.toggle('active', view.id === name));
     const invitationBanner = document.querySelector('#joinInviteBanner');
     if (invitationBanner) invitationBanner.hidden = name !== 'standings';
-    if (name === 'standings') requestAnimationFrame(() => window.workspaceOverviewResize?.());
-    buttons.forEach((button) => button.classList.toggle('active', button.dataset.view === name));
-    buttons.find((button) => button.dataset.view === name)?.scrollIntoView({ block: 'nearest', inline: 'center', behavior: 'smooth' });
+    if (name === 'league') requestAnimationFrame(() => window.workspaceOverviewResize?.());
+    const navView = name === 'teams' ? 'standings' : name === 'league' ? 'leagues' : name;
+    buttons.forEach((button) => {
+      button.classList.toggle('active', button.dataset.view === navView);
+      if (button.dataset.view === navView) button.setAttribute('aria-current', 'page');
+      else button.removeAttribute('aria-current');
+    });
+    // All three destinations fit; scrolling a nav item also scrolls the page.
     if (remember && rememberedViews.has(name)) {
       requestedView = name;
       localStorage.setItem('mirrorball-active-view', name);
       history.replaceState(null, '', `${location.pathname}${location.search}#${name}`);
     }
+    if (remember) window.scrollTo({ top: 0, behavior: 'instant' });
   };
   buttons.forEach((button) => button.addEventListener('click', () => openView(button.dataset.view)));
   document.querySelector('#welcomeGetStarted')?.addEventListener('click', () => {
@@ -418,7 +426,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     pictureButton.setAttribute('aria-expanded', 'false');
     syncProfileControls();
     profileHint.hidden = currentProfile?.onboarding_completed !== false;
-    myLeaguesNav.hidden = true;
+    myLeaguesNav.hidden = !signedInEmail;
     const labelMode = currentMember?.team_nav_label_mode || 'default';
     const teamNavLabel = selectedLeague?.league_id !== defaultLeagueId && ['setup', 'drafting'].includes(selectedLeague?.status) ? 'Draft'
       : labelMode === 'custom' && currentMember?.custom_team_nav_label
@@ -428,7 +436,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     myTeamNav.setAttribute('aria-label', teamNavLabel);
     myTeamNav.hidden = !signedInEmail || noLeague || (membershipReady && !currentMember?.fantasy_team_id);
     const dancesNav = buttons.find((button) => button.dataset.view === 'score');
-    dancesNav.hidden = !signedInEmail || noLeague || (selectedLeague?.league_id !== defaultLeagueId && ['setup', 'drafting'].includes(selectedLeague?.status));
+    dancesNav.hidden = !signedInEmail || noLeague;
     buttons.find((button) => button.dataset.view === 'league').hidden = !signedInEmail || noLeague;
     document.body.classList.add('auth-ready');
     scoreDeskLink.hidden = !isPlatformAdmin;
@@ -448,7 +456,10 @@ document.addEventListener('DOMContentLoaded', async () => {
     const view = location.hash.slice(1);
     if (rememberedViews.has(view)) {
       requestedView = view;
-      if ((view !== 'teams' || !myTeamNav.hidden) && (view !== 'score' || !buttons.find((button) => button.dataset.view === 'score').hidden)) openView(view, false);
+      if ((view !== 'teams' || !myTeamNav.hidden) && (view !== 'score' || !buttons.find((button) => button.dataset.view === 'score').hidden)) {
+        openView(view, false);
+        window.scrollTo({ top: 0, behavior: 'instant' });
+      }
     }
   });
   db.auth.onAuthStateChange((event, nextSession) => {
@@ -642,4 +653,5 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.querySelector('#signInMessage').textContent = `${label} sign-in returned, but the site couldn’t finish saving your session${sessionError ? `: ${sessionError.message}` : '.'} Please try again.`;
   }
   await showAccess(session);
+  requestAnimationFrame(() => window.scrollTo({ top: 0, behavior: 'instant' }));
 });

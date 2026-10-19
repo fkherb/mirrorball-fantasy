@@ -1,0 +1,149 @@
+/* The app's grouped surfaces, stage glow and three destinations, adapted for web. */
+body.app-experience {
+  --home-top: #5c3a72; --home-bottom: #34203f; --home-glow: #f1d08e66; --home-accent: #e79bc04d;
+  background: radial-gradient(ellipse 65% 36% at 0 0, var(--home-glow), transparent 90%), radial-gradient(ellipse 60% 40% at 100% 0, var(--home-accent), transparent 90%), #f6f3f7;
+  background-attachment: fixed;
+}
+body.app-experience[data-palette="sapphire"] { --home-top:#2d5390; --home-bottom:#182e56; --home-glow:#9ccbf566; --home-accent:#b7a8f24d; }
+body.app-experience[data-palette="emerald"] { --home-top:#24685a; --home-bottom:#123d33; --home-glow:#9fe0c766; --home-accent:#ebd98f4d; }
+body.app-experience[data-palette="pearl-rose"] { --home-top:#8a3f5e; --home-bottom:#4e2236; --home-glow:#f6bacb66; --home-accent:#f8d4ae4d; }
+.app-experience header { background:linear-gradient(110deg,var(--home-bottom),var(--home-top)); position:sticky; top:0; z-index:40; }
+.app-experience header .brand { min-width:0; }
+.app-experience header .brand { display:flex; align-items:center; gap:10px; text-decoration:none; }
+.app-experience header .brand img { width:42px; height:42px; object-fit:contain; }
+.app-experience header .brand .brand-wordmark { font:600 18px/1.15 Georgia,serif; color:white; letter-spacing:-.03em; }
+.app-experience #primaryNav { background:#fffc; backdrop-filter:blur(18px); }
+.app-experience #primaryNav button[data-view] { color:#5c5264; min-height:48px; transition:none; }
+.app-experience #primaryNav button.active, .app-experience #primaryNav button.active:hover { background:var(--home-top); color:white; box-shadow:none; }
+.app-experience #primaryNav [data-view="leagues"] svg { fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+.app-experience .view { scroll-margin-top:95px; }
+.app-experience #primaryNav [data-view="teams"], .app-experience #primaryNav [data-view="league"] { display:none !important; }
+.app-experience main { max-width:1600px; margin-inline:auto; padding:32px clamp(18px,3vw,44px) 60px; min-width:0; }
+.app-experience #memberOverview > .standings-head { padding-bottom:20px; }
+.app-experience #memberOverview > .highlight-preview { display:none; }
+.app-experience #memberOverview h1 { font:700 clamp(34px,4vw,48px)/1.1 Georgia,serif; letter-spacing:-.04em; }
+.app-experience .home-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.app-experience .home-actions button { min-height:42px; font-size:12px; }
+.app-experience .card { background:#ffffffed; border-color:#e6dfe9; box-shadow:0 6px 24px #34203f08; border-radius:20px; }
+.home-section:empty { display:none; }
+.home-section { min-width:0; margin-bottom:28px; }
+.section-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:12px; }
+.section-heading h2 { font:700 24px/1.2 Georgia,serif; letter-spacing:-.025em; margin:0; }
+.section-heading .sub { margin:5px 0 0; }
+.section-heading a { color:var(--home-top); font-weight:700; }
+.home-team-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr)); gap:16px; }
+.home-team-card { min-width:0; text-decoration:none; display:block; border-radius:24px; padding:24px; color:white; background:radial-gradient(circle at 100% 0,#ffffff20,transparent 65%),linear-gradient(135deg,var(--home-top),var(--home-bottom)); box-shadow:0 10px 25px #34203f15; }
+.home-team-card:hover { box-shadow:0 14px 30px #34203f28; }
+.home-team-card-top { display:flex; justify-content:space-between; align-items:center; gap:12px; }
+.home-team-card .eyebrow { color:#e9d9ed; overflow-wrap:anywhere; }
+.home-team-card h3 { font:600 26px/1.2 Georgia,serif; letter-spacing:-.025em; margin:12px 0 24px; overflow-wrap:anywhere; }
+.home-team-stats { display:flex; justify-content:space-between; gap:16px; }
+.home-team-stats > span { display:flex; flex-direction:column; gap:6px; }
+.home-team-stats b { font-size:34px; font-weight:750; font-variant-numeric:tabular-nums; }
+.home-team-stats i { font-size:18px; font-style:normal; color:#d7c5e1; }
+.home-team-stats small { font-size:12px; color:#e8deed; }
+.home-team-last { color:#e8deed; font-size:12px; margin:16px 0 0; }
+.home-team-last strong { color:#f2d79b; margin-left:8px; }
+.home-team-card-bottom { display:flex; justify-content:space-between; padding-top:16px; margin-top:20px; border-top:1px solid #ffffff30; font-size:13px; font-weight:700; }
+.app-experience .directory-card { background:#fff; color:#302638; box-shadow:0 4px 20px #34203f08; border:1px solid #e6dfe9; }
+.directory-card .eyebrow,.directory-card small,.directory-card i { color:#716477; }
+.directory-card .home-team-card-bottom { border-color:#ece5ef; color:var(--home-top); }
+.directory-card .home-team-last strong { color:var(--home-top); }
+.home-footer { display:flex; gap:12px; justify-content:center; padding:20px 0; }
+.home-footer button { min-height:44px; }
+.app-experience .text-action { background:none; color:var(--home-top); }
+.home-airing-status { margin:10px 4px 0; color:#716477; font-size:12px; }
+.app-experience .episode-spotlight { background:linear-gradient(125deg,var(--home-bottom),var(--home-top)); border-radius:24px; animation:none; }
+.home-recap-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr)); gap:16px; }
+.app-experience .home-recap-card { padding:0; overflow:hidden; border-radius:22px; background:var(--home-bottom); text-align:left; display:flex; flex-direction:column; color:white; width:100%; }
+.home-recap-card > img { width:100%; aspect-ratio:16/8; max-height:330px; object-fit:cover; object-position:50% 30%; }
+.recap-no-photo { height:160px; display:grid; place-items:center; font-size:70px; color:#eed29b; background:linear-gradient(140deg,var(--home-top),var(--home-bottom)); }
+.recap-caption { display:flex; justify-content:space-between; align-items:center; width:100%; padding:20px; gap:16px; }
+.recap-caption > span { display:grid; gap:6px; }
+.recap-caption b { font:600 21px/1.2 Georgia,serif; }
+.recap-caption small { color:#eadff0; font-size:12px; font-weight:500; }
+.recap-caption strong { font-size:29px; white-space:nowrap; color:#f1d99f; }
+.home-results-list,.home-odds-list { background:#ffffffec; border:1px solid #e6dfe9; border-radius:20px; overflow:hidden; }
+.app-experience .home-results-list button,.app-experience .home-odds-list button { display:flex; align-items:center; gap:14px; width:100%; padding:16px 20px; background:none; color:#302638; text-align:left; border-radius:0; border-bottom:1px solid #eee6f1; }
+.home-results-list button:last-child,.home-odds-list button:last-child { border-bottom:0; }
+.home-results-list button > span:nth-child(2),.home-odds-list button > span:nth-child(2) { flex:1; display:grid; gap:4px; }
+.home-results-list b,.home-odds-list b { font-size:14px; }
+.home-results-list small,.home-odds-list small { font-size:12px; color:#7a6c81; font-weight:400; }
+.result-star { font-size:32px; color:#b53d70; }
+.odds-ring { width:56px; height:56px; border-radius:50%; flex-shrink:0; display:grid; place-items:center; background:conic-gradient(var(--home-top) var(--percent),#e9e1ed 0); position:relative; }
+.odds-ring::before { content:''; position:absolute; inset:5px; background:white; border-radius:50%; }
+.odds-ring b { position:relative; font-size:12px; }
+.odds-ring.elimination { background:conic-gradient(#be5261 var(--percent),#f1dfe0 0); }
+.app-league-standings { margin-bottom:30px; }
+.app-league-standings #standingsMode { margin:16px 0; }
+#directoryInvitations { margin-top:24px; }
+.invitation-summary,.spoiler-banner { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px; }
+.invitation-summary p,.spoiler-banner p { margin:5px 0 0; font-size:13px; }
+.spoiler-banner { background:#fbefd4; border:1px solid #e5cb92; border-radius:18px; margin-bottom:24px; color:#58451e; }
+.spoiler-banner button { flex-shrink:0; }
+.spoiler-value { font-size:15px; color:#8b7695; letter-spacing:3px; }
+.spoiler-reveal { color:var(--home-top); background:#f2edf5; border-radius:9px; padding:8px 12px; font-size:12px; }
+.app-experience .experience-sheet { padding:24px; width:min(560px,calc(100vw - 28px)); max-height:85dvh; overflow-y:auto; color:#302638; border:1px solid #e9e0ed; border-radius:26px; background:linear-gradient(140deg,#f9f5fc,#fffdfa); }
+.experience-sheet::backdrop { background:#1c132b70; backdrop-filter:blur(4px); }
+.experience-sheet-head { display:flex; align-items:start; justify-content:space-between; gap:20px; margin-bottom:18px; }
+.experience-sheet-head h2 { font:700 27px/1.15 Georgia,serif; margin:0; }
+.experience-sheet-head button { background:#eee8f1; color:#594560; width:36px; height:36px; border-radius:50%; flex-shrink:0; font-size:22px; padding:0; }
+.experience-sheet label { display:block; }
+.layout-option { display:flex; gap:10px; align-items:center; justify-content:space-between; border-bottom:1px solid #e7dfec; padding:16px 0; }
+.layout-option label,.preference-toggle { display:flex !important; align-items:center; gap:12px; }
+.layout-option label span,.preference-toggle span { display:grid; gap:5px; }
+.layout-option small,.preference-toggle small { font-size:12px; font-weight:400; line-height:1.5; }
+.layout-option input,.preference-toggle input { width:20px; height:20px; margin:0; flex-shrink:0; accent-color:#6d4c76; }
+.layout-option > div { display:flex; gap:4px; }
+.layout-option button { width:34px; min-height:36px; }
+#resetHomeLayout { margin-top:20px; }
+.preference-toggle { margin-block:24px; }
+.account-web-settings { padding:10px 0; border-block:1px solid #e6dfe9; margin:12px 0; }
+.account-web-settings .account-menu-link { display:block; text-align:left; width:100%; border:0; background:none; color:#523e60; font-size:13px; padding:10px 4px; }
+.tutorial-art { height:120px; display:grid; place-items:center; color:#e9c984; font-size:80px; border-radius:20px; margin-bottom:20px; background:radial-gradient(circle at 30% 0,#ffffff30,transparent),linear-gradient(135deg,var(--home-top),var(--home-bottom)); }
+.tutorial-copy { font-size:16px; line-height:1.7; color:#63576b; }
+.tutorial-progress { display:flex; gap:8px; justify-content:center; margin:22px 0; }
+.tutorial-progress i { width:7px; height:7px; border-radius:50%; background:#dcd0e3; }
+.tutorial-progress i.selected { background:var(--home-top); width:22px; border-radius:6px; }
+.notification-link { display:block; color:var(--home-top); font-weight:700; padding:20px 0; }
+.dance-discovery-actions { display:flex; gap:8px; flex-wrap:wrap; margin:16px 0 8px; }
+.dance-discovery-actions button { min-height:40px; font-size:12px; }
+.music-options { padding:12px 0 20px; border-bottom:1px solid #e6dfeb; }
+.music-options h3 { margin-bottom:4px; }
+.music-options p { color:#716477; margin-top:0; }
+.music-options > div { display:flex; flex-wrap:wrap; gap:12px; }
+.music-options a { color:var(--home-top); background:#ede7f1; padding:12px 14px; border-radius:12px; font-weight:700; text-decoration:none; }
+.style-description p { line-height:1.6; }
+.style-statistics { display:flex; gap:10px; text-align:center; }
+.style-statistics > span { flex:1; background:#eee7f1; border-radius:14px; padding:14px 8px; display:grid; gap:6px; font-size:11px; }
+.style-statistics b { font-size:24px; color:var(--home-top); }
+.dance-special-note { border-left:3px solid #bda264; background:#faf6ed; padding:16px; border-radius:12px; margin:16px 0; }
+.dance-special-note h3 { margin:0; }
+.dance-special-note p { font-size:13px; line-height:1.6; margin-bottom:0; }
+@media(min-width:1100px) {
+  #appHomeFeed { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 24px; }
+  .home-section-showNight,.home-section-teams,.home-section-invitations { grid-column:1/-1; }
+  .home-team-grid { grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); }
+}
+@media(max-width:750px) {
+  .app-experience header { height:64px; padding-inline:16px; }
+  .app-experience header .brand img { max-width:180px; }
+  .app-experience main { padding:24px 16px calc(110px + env(safe-area-inset-bottom)); }
+  .app-experience #primaryNav,.app-experience.nav-collapsed #primaryNav { position:fixed; bottom:0; top:auto; inset-inline:0; width:100%; display:flex; justify-content:space-around; border:0; border-top:1px solid #e2d9e8; background:#fffefbea; backdrop-filter:blur(24px); padding:8px 12px calc(8px + env(safe-area-inset-bottom)); border-radius:22px 22px 0 0; z-index:60; }
+  .app-experience #primaryNav button[data-view],.app-experience.nav-collapsed #primaryNav button[data-view] { display:flex; flex:1; flex-direction:column; align-items:center; justify-content:center; gap:5px; height:54px; min-width:0; border-radius:16px; color:#8a7c91; }
+  .app-experience #primaryNav button.active,.app-experience #primaryNav button.active:hover,.app-experience.nav-collapsed #primaryNav button.active { color:var(--home-top); background:#eee7f0; box-shadow:none; }
+  .app-experience #primaryNav .nav-label,.app-experience.nav-collapsed #primaryNav .nav-label { display:block; font-size:11px; font-weight:700; }
+  .app-experience #primaryNav [hidden] { display:none !important; }
+  .app-experience #memberOverview .standings-head { align-items:flex-start; gap:14px; }
+  .home-team-card { padding:22px; }
+  .home-team-grid { grid-template-columns:1fr; }
+  .section-heading h2 { font-size:23px; }
+  .home-recap-card > img { aspect-ratio:16/9; }
+  .recap-caption { padding:16px; }
+  .spoiler-banner { align-items:flex-start; flex-direction:column; }
+  .app-experience #accountMenu { max-height:calc(100dvh - 155px); overflow-y:auto; }
+  .experience-sheet .layout-option label { min-width:0; }
+}
+@media(prefers-reduced-motion:reduce) {
+  .app-experience *, .app-experience *::before, .app-experience *::after { scroll-behavior:auto !important; transition:none !important; animation:none !important; }
+}

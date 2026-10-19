@@ -6,26 +6,62 @@ export function roleForWeek(member, week, weeks) {
   return member.role;
 }
 
-export function appearanceValue(member, roleMap, week, weeks, snapshot = null) {
+export function appearanceValue(member, roleMap, week, weeks, snapshot = null, isOriginalLeague = false) {
   if (!member) return 0;
   if (member.is_hough) return Number(roleMap.get('Hough')?.appearance_points) || 0;
   const role = snapshot?.cast_role || roleForWeek(member, week, weeks);
   if (role === 'Surprise') {
-    if (member.surprise_base_role) return (Number(roleMap.get(member.surprise_base_role)?.appearance_points) || 0) + 2;
+    if (!isOriginalLeague && member.surprise_base_role) return (Number(roleMap.get(member.surprise_base_role)?.appearance_points) || 0) + 2;
     return Number(member.custom_appearance_points) || 0;
   }
   return Number(roleMap.get(role)?.appearance_points) || 0;
 }
 
-export function sharedAppearanceRate(member, snapshot, rateByName) {
+export function sharedAppearanceRate(member, snapshot, rateByName, isOriginalLeague = false) {
   if (!member) return 0;
   if (member.is_hough) return rateByName.get('Hough') || 0;
   const role = snapshot?.cast_role || member.role;
   if (role === 'Surprise') {
-    if (member.surprise_base_role) return (rateByName.get(member.surprise_base_role) || 0) + 2;
+    if (!isOriginalLeague && member.surprise_base_role) return (rateByName.get(member.surprise_base_role) || 0) + 2;
     return Number(member.custom_appearance_points) || 0;
   }
   return rateByName.get(role) || 0;
+}
+
+// Keep this allocation in sync with iOS Scoring.competitiveAwards and
+// get_league_scores. Replacements earn judges' points instead of an appearance.
+export function competitiveAwards(data, scoreByDance) {
+  const pairs = new Map((data.pairs || data.partnerships || []).map((pair) => [pair.id, pair]));
+  const competitive = data.dances.filter((dance) => dance.kind === 'competitive');
+  const changes = data.castChanges || [];
+  const own = new Set();
+  for (const dance of competitive) {
+    const pair = pairs.get(dance.partnership_id);
+    if (!pair) continue;
+    for (const id of [pair.star_id, pair.pro_id].filter(Boolean)) {
+      if (!changes.some((change) => change.dance_id === dance.id && change.cast_member_id === id)) own.add(`${dance.week_id}:${id}`);
+    }
+  }
+  const awards = [];
+  const skippedAppearances = new Set();
+  for (const dance of competitive) {
+    const pair = pairs.get(dance.partnership_id);
+    if (!pair) continue;
+    const total = scoreByDance.get(dance.id) || 0;
+    const changed = changes.filter((change) => change.dance_id === dance.id);
+    const add = (castId, points) => awards.push({ castId, points, weekId: dance.week_id, danceId: dance.id });
+    for (const id of [pair.star_id, pair.pro_id].filter(Boolean)) {
+      const change = changed.find((item) => item.cast_member_id === id);
+      add(id, !change ? total : change.reason === 'suspended' ? 0 : id === pair.pro_id ? Math.ceil(total / 2) : total);
+    }
+    for (const change of changed) {
+      const id = change.replacement_cast_member_id;
+      if (!id) continue;
+      add(id, own.has(`${dance.week_id}:${id}`) ? Math.ceil(total / 2) : total);
+      skippedAppearances.add(`${dance.id}:${id}`);
+    }
+  }
+  return { awards, skippedAppearances };
 }
 
 export function calculateLeaguePoints(data) {
@@ -49,15 +85,13 @@ export function calculateLeaguePoints(data) {
     memberWeek.set(memberId, record);
   };
   data.scores.forEach((score) => scoresByDance.set(score.dance_id, (scoresByDance.get(score.dance_id) || 0) + score.score));
-  data.dances.filter((dance) => dance.kind === 'competitive').forEach((dance) => {
-    const pairing = partnershipById.get(dance.partnership_id);
-    const score = scoresByDance.get(dance.id) || 0;
-    if (pairing) [pairing.star_id, pairing.pro_id].forEach((id) => add(id, dance.week_id, 'official', score));
-  });
+  const competitive = competitiveAwards(data, scoresByDance);
+  competitive.awards.forEach(({ castId, weekId, points }) => add(castId, weekId, 'official', points));
   data.appearances.forEach((appearance) => {
+    if (competitive.skippedAppearances.has(`${appearance.dance_id}:${appearance.cast_member_id}`)) return;
     const dance = danceById.get(appearance.dance_id);
     const member = memberById.get(appearance.cast_member_id);
-    if (dance) add(member?.id, dance.week_id, 'appearances', appearanceValue(member, roleMap, weekById.get(dance.week_id), data.weeks, snapshotByWeekMember.get(`${dance.week_id}:${member?.id}`)));
+    if (dance) add(member?.id, dance.week_id, 'appearances', appearanceValue(member, roleMap, weekById.get(dance.week_id), data.weeks, snapshotByWeekMember.get(`${dance.week_id}:${member?.id}`), data.isOriginalLeague === true));
   });
   return { teams: data.teams, members: data.members, weeks: data.weeks, memberPoints, weekMemberPoints };
 }
@@ -65,6 +99,8 @@ export function calculateLeaguePoints(data) {
 // Frozen snapshots preserve team and role; appearance counts come from recorded
 // dances, while every league uses the current global role rates.
 export function scoreLeague(data, context) {
+  const isOriginalLeague = context.leagueId === '00000000-0000-4000-8000-000000000001'
+    || data.league?.id === '00000000-0000-4000-8000-000000000001' || data.league?.slug === 'dwts-fantasy-league';
   const teams = data.teams;
   const castById = new Map(data.cast.map((member) => [member.id, member]));
   const pairById = new Map(data.pairs.map((pair) => [pair.id, pair]));
@@ -101,21 +137,17 @@ export function scoreLeague(data, context) {
     detail[source] += amount;
     pointsByWeekCast.set(castKey, detail);
   };
-  data.dances.filter((dance) => dance.kind === 'competitive').forEach((dance) => {
-    const pair = pairById.get(dance.partnership_id);
-    if (!pair) return;
-    const score = scoreByDance.get(dance.id) || 0;
-    add(pair.star_id, dance.week_id, score, 'official');
-    add(pair.pro_id, dance.week_id, score, 'official');
-  });
+  const competitive = competitiveAwards(data, scoreByDance);
+  competitive.awards.forEach(({ castId, weekId, points }) => add(castId, weekId, points, 'official'));
   data.appearances.forEach((appearance) => {
+    if (competitive.skippedAppearances.has(`${appearance.dance_id}:${appearance.cast_member_id}`)) return;
     const dance = danceById.get(appearance.dance_id);
     if (!dance) return;
     const cast = castById.get(appearance.cast_member_id);
     if (!cast) return;
     const snapshot = snapshotByKey.get(`${dance.week_id}:${cast.id}`);
-    const rate = sharedAppearanceRate(cast, snapshot, rateByName);
+    const rate = sharedAppearanceRate(cast, snapshot, rateByName, isOriginalLeague);
     add(cast.id, dance.week_id, rate, 'appearances');
   });
-  return { totalByTeam, pointsByTeamCast, pointsByWeekTeam, pointsByWeekCast, scoringWeeks, rateByName, scoreByDance, snapshotByKey };
+  return { totalByTeam, pointsByTeamCast, pointsByWeekTeam, pointsByWeekCast, scoringWeeks, rateByName, scoreByDance, snapshotByKey, isOriginalLeague, competitive };
 }

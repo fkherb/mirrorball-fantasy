@@ -1,12 +1,14 @@
-import { db } from './supabase-client.js?v=20261015-configured-judges-v114';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261015-configured-judges-v114';
-import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261015-configured-judges-v114';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261015-configured-judges-v114';
-import { loadMarketPredictions } from './market-predictions.js?v=20261015-configured-judges-v114';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261015-configured-judges-v114';
-import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261015-configured-judges-v114';
-import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261015-configured-judges-v114';
-import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261015-configured-judges-v114';
+import { db } from './supabase-client.js?v=20261019-app-parity-v115';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261019-app-parity-v115';
+import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261019-app-parity-v115';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261019-app-parity-v115';
+import { loadMarketPredictions } from './market-predictions.js?v=20261019-app-parity-v115';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261019-app-parity-v115';
+import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261019-app-parity-v115';
+import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261019-app-parity-v115';
+import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261019-app-parity-v115';
+import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261019-app-parity-v115';
+import { observeResults, hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261019-app-parity-v115';
 
 const $ = (selector) => document.querySelector(selector);
 const safe = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -40,7 +42,7 @@ let lastSnapshotCheckAt = 0;
 let lastSnapshotLeagueId = null;
 const fullWorkspaceRefreshMs = 2 * 60 * 1000;
 const snapshotCheckMs = 5 * 60 * 1000;
-const fastWorkspaceKeys = new Set(['league', 'autoDraft', 'draftRoles', 'rosterRules', 'assignments', 'cast', 'roles', 'weeks', 'dances', 'scores', 'appearances']);
+const fastWorkspaceKeys = new Set(['league', 'autoDraft', 'draftRoles', 'rosterRules', 'assignments', 'cast', 'roles', 'weeks', 'dances', 'scores', 'appearances', 'castChanges']);
 
 function dialog(markup) {
   const modal = $('#modal');
@@ -75,7 +77,7 @@ function castImage(member) {
 
 function castTile(member, action = '', tag = 'article', profileButton = false) {
   const image = castImage(member);
-  const identity = `<img src="${safe(castThumbnailFor(image))}" data-original-src="${safe(image)}" alt="" loading="lazy" decoding="async" width="70" height="80"><span><b>${safe(member.name)}</b><small>${safe(member.role === 'DWTS Next Pro' ? 'Next Pro' : member.role)}</small></span>`;
+  const identity = `<img src="${safe(castThumbnailFor(image))}" data-original-src="${safe(image)}" alt="" loading="lazy" decoding="async" width="70" height="80"><span><b>${safe(member.name)}</b><small>${safe(spoilerRole(member, member.role === 'DWTS Next Pro' ? 'Next Pro' : member.role))}</small></span>`;
   return `<${tag} class="workspace-cast-tile">${profileButton ? `<button type="button" class="workspace-profile-button" data-workspace-profile="${safe(member.id)}" aria-label="View ${safe(member.name)} profile and points">${identity}</button>` : identity}${action}</${tag}>`;
 }
 
@@ -88,14 +90,12 @@ function projectedDraftCastPoints(cast, data, score) {
   let judgesTotal = 0;
   let appearanceCount = 0;
   let appearancePoints = 0;
-  for (const dance of dances.values()) {
-    const pair = pairs.get(dance.partnership_id);
-    if (dance.kind === 'competitive' && (pair?.star_id === cast.id || pair?.pro_id === cast.id)) {
-      judgesTotal += score.scoreByDance.get(dance.id) || 0;
-    }
+  for (const award of score.competitive.awards) {
+    if (award.castId === cast.id && dances.has(award.danceId)) judgesTotal += award.points;
   }
   for (const appearance of data.appearances) {
     if (appearance.cast_member_id !== cast.id) continue;
+    if (score.competitive.skippedAppearances.has(`${appearance.dance_id}:${cast.id}`)) continue;
     const dance = dances.get(appearance.dance_id);
     if (!dance) continue;
     appearanceCount += 1;
@@ -104,7 +104,7 @@ function projectedDraftCastPoints(cast, data, score) {
     const role = beforeElimination && cast.role === 'Eliminated Star' ? 'Star'
       : beforeElimination && cast.role === 'Eliminated Pro' ? 'Pro' : cast.role;
     const rate = cast.is_hough ? score.rateByName.get('Hough')
-      : role === 'Surprise' ? cast.surprise_base_role
+      : role === 'Surprise' ? !score.isOriginalLeague && cast.surprise_base_role
         ? (score.rateByName.get(cast.surprise_base_role) || 0) + 2 : cast.custom_appearance_points
         : score.rateByName.get(role);
     appearancePoints += Number(rate) || 0;
@@ -144,7 +144,7 @@ function openWorkspaceCastProfile(cast, teamName = 'Available cast', backAction 
     return sum;
   }, { official: 0, appearances: 0 });
   const appearanceCount = state?.data.appearances.filter((appearance) => {
-    if (appearance.cast_member_id !== cast.id) return false;
+    if (appearance.cast_member_id !== cast.id || state.score.competitive.skippedAppearances.has(`${appearance.dance_id}:${cast.id}`)) return false;
     const weekId = state.data.dances.find((dance) => dance.id === appearance.dance_id)?.week_id;
     return scoringWeeks.has(weekId) && state.score.snapshotByKey.get(`${weekId}:${cast.id}`)?.fantasy_team_id;
   }).length || 0;
@@ -429,6 +429,7 @@ export async function renderLeagueHub(context) {
 
   const visibleInvites = linkInvite && !invites.some((invite) => invite.league_id === linkInvite.league_id)
     ? [linkInvite, ...invites] : invites;
+  window.dispatchEvent(new CustomEvent('mirrorball-invitations', { detail: visibleInvites }));
   renderWelcomeActions(context, visibleInvites, invitesError);
   const accountBadge = $('#auth .invite-notification-count');
   accountBadge?.remove();
@@ -573,6 +574,7 @@ async function loadWorkspaceData(context, { light = false, previous = null } = {
     dances: db.from('dances').select('*').order('sort_order'),
     scores: db.from('dance_judge_scores').select('dance_id,judge_name,score'),
     appearances: db.from('dance_appearances').select('dance_id,cast_member_id'),
+    castChanges: db.from('dance_cast_changes').select('dance_id,cast_member_id,replacement_cast_member_id,reason,description'),
     snapshots: db.from('league_weekly_roster_snapshots').select('*').eq('league_id', leagueId),
     order: db.from('league_draft_order').select('draft_position,fantasy_team_id').eq('league_id', leagueId).order('draft_position'),
     picks: db.from('league_draft_picks').select('pick_number,round_number,fantasy_team_id,cast_member_id,picked_at,is_auto_pick').eq('league_id', leagueId).order('pick_number'),
@@ -644,7 +646,7 @@ function renderStandings(context, data, score, assignmentMap, memberByTeam, refr
   if (!controls) {
     controls = document.createElement('div');
     controls.id = 'standingsMode';
-    $('#memberOverview .overview-layout').before(controls);
+    $('.overview-layout').before(controls);
   }
   controls.hidden = !scored;
   controls.innerHTML = scored ? standingsSwitch(workspaceStandingsMode, latestWeek) : '';
@@ -696,7 +698,7 @@ function renderStandings(context, data, score, assignmentMap, memberByTeam, refr
         return total;
       }, { official: 0, appearances: 0 });
       const role = cast.role;
-      const appearanceRate = sharedAppearanceRate(cast, null, score.rateByName);
+      const appearanceRate = sharedAppearanceRate(cast, null, score.rateByName, score.isOriginalLeague);
       return { member: cast, role, appearanceRate, displayRole: role === 'DWTS Next Pro' ? 'Next Pro' : role,
         official: parts.official, appearances: parts.appearances, total: points };
     });
@@ -711,7 +713,7 @@ function renderStandings(context, data, score, assignmentMap, memberByTeam, refr
   const drawDetail = () => {
     const panel = $('#overviewTeamDetail');
     const team = rows.find((item) => item.id === selectedWorkspaceOverviewTeamId);
-    if (!scored || !team || !$('#standings').classList.contains('active') || $('.overview-layout').getBoundingClientRect().width < 1030) { panel.innerHTML = ''; return; }
+    if (!scored || !team || !$('#league').classList.contains('active') || $('.overview-layout').getBoundingClientRect().width < 1030) { panel.innerHTML = ''; return; }
     panel.innerHTML = `<section class="card overview-team-detail">${detailMarkup(team)}</section>`;
     bindCastDetail(panel, team);
   };
@@ -728,7 +730,7 @@ function renderStandings(context, data, score, assignmentMap, memberByTeam, refr
     const roster = data.cast.filter((cast) => assignmentMap.get(cast.id) === team.id)
       .sort((a, b) => (score.pointsByTeamCast.get(team.id)?.get(b.id) || 0)
         - (score.pointsByTeamCast.get(team.id)?.get(a.id) || 0));
-    dialog(`<p class="eyebrow">${safe(context.leagueName)}</p><h2>${safe(team.team_name || `${team.manager.split(' ')[0]}'s Team`)}</h2><p class="sub">Managed by ${safe(team.manager)} · ${context.leagueStatus === 'active' ? `${team.points} season points` : `${roster.length}/${context.rosterSize} cast drafted`}</p><div class="workspace-cast-list">${roster.map((cast) => castTile(cast, context.leagueStatus === 'active' ? `<strong class="workspace-points">${score.pointsByTeamCast.get(team.id)?.get(cast.id) || 0} pts</strong>` : '')).join('') || '<p class="sub">The draft has not filled this roster yet.</p>'}</div>`);
+    dialog(`<p class="eyebrow">${safe(context.leagueName)}</p><h2>${safe(team.team_name || `${team.manager.split(' ')[0]}'s Team`)}</h2><p class="sub">Managed by ${safe(team.manager)} · ${context.leagueStatus === 'active' ? `${team.points} season points` : `${roster.length}/${context.rosterSize} cast drafted`}</p><div class="workspace-cast-list">${roster.map((cast) => castTile(cast, context.leagueStatus === 'active' ? `<strong class="workspace-points">${hidesResults() ? hiddenScoreMarkup() : `${score.pointsByTeamCast.get(team.id)?.get(cast.id) || 0} pts`}</strong>` : '')).join('') || '<p class="sub">The draft has not filled this roster yet.</p>'}</div>`);
     };
     button.addEventListener('click', open);
     button.addEventListener('keydown', (event) => { if (event.key === 'Enter' || event.key === ' ') { event.preventDefault(); open(); } });
@@ -836,7 +838,7 @@ function renderMyTeam(context, data, score, assignmentMap, memberByTeam, refresh
     const parts = scoreForCast(member);
     const snapshot = selectedWeek?.is_complete ? score.snapshotByKey.get(`${selectedWeek.id}:${member.id}`) : null;
     const role = snapshot?.cast_role || member.role;
-    const rate = sharedAppearanceRate(member, snapshot, score.rateByName);
+    const rate = sharedAppearanceRate(member, snapshot, score.rateByName, score.isOriginalLeague);
     return { member, role, appearanceRate: Number(rate) || 0,
       displayRole: role === 'DWTS Next Pro' ? 'Next Pro' : role,
       official: parts.official, appearances: parts.appearances, total: parts.official + parts.appearances };
@@ -1161,18 +1163,19 @@ function openWorkspaceDanceDetail(data, score, assignmentMap, memberByTeam, week
   const scores = data.scores.filter((item) => item.dance_id === dance.id);
   const appearances = data.appearances.filter((item) => item.dance_id === dance.id);
   const scoreTotal = scores.reduce((sum, item) => sum + Number(item.score || 0), 0);
-  const participants = [...new Map([star, pro, ...appearances.map((item) => castById.get(item.cast_member_id))]
+  const awards = score.competitive.awards.filter((award) => award.danceId === dance.id);
+  const participants = [...new Map([star, pro, ...awards.map((award) => castById.get(award.castId)), ...appearances.map((item) => castById.get(item.cast_member_id))]
     .filter(Boolean).map((cast) => [cast.id, cast])).values()];
   const rows = participants.map((cast) => {
     const snapshot = week.is_complete ? score.snapshotByKey.get(`${week.id}:${cast.id}`) : null;
     const teamId = snapshot?.fantasy_team_id ?? assignmentMap.get(cast.id);
     const team = memberByTeam.get(teamId);
     const role = snapshot?.cast_role || cast.role;
-    const rate = sharedAppearanceRate(cast, snapshot, score.rateByName);
-    const appearanceCount = appearances.filter((item) => item.cast_member_id === cast.id).length;
+    const rate = sharedAppearanceRate(cast, snapshot, score.rateByName, score.isOriginalLeague);
+    const appearanceCount = score.competitive.skippedAppearances.has(`${dance.id}:${cast.id}`) ? 0 : appearances.filter((item) => item.cast_member_id === cast.id).length;
     return { member: cast, role: role === 'DWTS Next Pro' ? 'Next Pro' : role,
       teamId, teamName: team?.team_name || team?.display_name || snapshot?.team_name || 'Available cast',
-      points: ((cast.id === star?.id || cast.id === pro?.id) && dance.kind === 'competitive' ? scoreTotal : 0)
+      points: awards.filter((award) => award.castId === cast.id).reduce((sum, award) => sum + award.points, 0)
         + appearanceCount * Number(rate || 0) };
   }).sort((a, b) => b.points - a.points || a.member.name.localeCompare(b.member.name));
   const totals = new Map();
@@ -1189,6 +1192,7 @@ function openWorkspaceDanceDetail(data, score, assignmentMap, memberByTeam, week
     castRows: rows, imageFor: castImage })}`);
   $('#danceBackToProfile')?.addEventListener('click', backToProfile);
   bindDanceGallery($('#modalBody'));
+  enhanceDanceDetail($('#modalBody'), dance, data, () => openWorkspaceDanceDetail(data, score, assignmentMap, memberByTeam, week, dance, backToProfile));
   $('#modalBody').querySelectorAll('[data-dance-cast-profile]').forEach((button) => button.addEventListener('click', () => {
     const row = rows.find((item) => item.member.id === button.dataset.danceCastProfile);
     if (row) openWorkspaceCastProfile(row.member, row.teamName,
@@ -1600,10 +1604,11 @@ export async function renderSecondaryLeague(context, { silent = false, light = f
     teamNav.querySelector('.nav-label').textContent = teamNavLabel;
     teamNav.setAttribute('aria-label', teamNavLabel);
     const dancesNav = document.querySelector('[data-view="score"]');
-    if (dancesNav) dancesNav.hidden = liveContext.leagueStatus !== 'active';
+    if (dancesNav) dancesNav.hidden = false;
     const assignmentMap = new Map(data.assignments.map((assignment) => [assignment.cast_member_id, assignment.fantasy_team_id]));
     const memberByTeam = new Map(data.members.map((member) => [member.fantasy_team_id, member]));
     const score = scoreLeague(data, liveContext);
+    observeResults(data);
     activeWorkspaceDetail = { context: liveContext, data, score, assignmentMap, memberByTeam, predictions, refreshSignature };
     renderStandings(liveContext, data, score, assignmentMap, memberByTeam, refresh);
     renderMyTeam(liveContext, data, score, assignmentMap, memberByTeam, refresh);
@@ -1615,10 +1620,12 @@ export async function renderSecondaryLeague(context, { silent = false, light = f
     };
     refreshCurrentWorkspaceTrades = liveContext.leagueStatus === 'active' ? refreshTrades : null;
     if (liveContext.leagueStatus === 'active') refreshTrades();
-    if (liveContext.leagueStatus === 'active') renderDances(liveContext, data, score, assignmentMap, memberByTeam);
-    else { $('#weekTabs').innerHTML = ''; $('#scoreDeskContent').innerHTML = ''; }
+    renderDances(liveContext, data, score, assignmentMap, memberByTeam);
     await renderLeague(liveContext, data, assignmentMap, memberByTeam, score, refresh);
     if (version !== workspaceVersion) return;
+    updateAppExperience({ context: liveContext, data, totals: score.totalByTeam, weekTotals: score.pointsByWeekTeam,
+      openDance: (id) => { const dance = data.dances.find((item) => item.id === id); const week = data.weeks.find((item) => item.id === dance?.week_id); if (dance && week) openWorkspaceDanceDetail(data, score, assignmentMap, memberByTeam, week, dance); },
+      openCast: (id) => openWorkspaceCastProfile(data.cast.find((member) => member.id === id)) });
     clearInterval(workspaceRefreshTimer);
     clearInterval(workspaceTradeRefreshTimer);
     refreshCurrentWorkspaceDraft = null;
@@ -1690,6 +1697,19 @@ export async function renderSecondaryLeague(context, { silent = false, light = f
     }
   }
 }
+
+window.addEventListener('mirrorball-refresh-presentation', () => {
+  if (!activeWorkspaceDetail) return;
+  const { context, data, score, assignmentMap, memberByTeam } = activeWorkspaceDetail;
+  const refresh = () => renderSecondaryLeague(context, { silent: true });
+  renderStandings(context, data, score, assignmentMap, memberByTeam, refresh);
+  renderMyTeam(context, data, score, assignmentMap, memberByTeam, refresh);
+  renderDances(context, data, score, assignmentMap, memberByTeam);
+  renderLeague(context, data, assignmentMap, memberByTeam, score, refresh);
+  updateAppExperience({ context, data, totals: score.totalByTeam, weekTotals: score.pointsByWeekTeam,
+    openDance: (id) => { const dance = data.dances.find((item) => item.id === id); const week = data.weeks.find((item) => item.id === dance?.week_id); if (dance && week) openWorkspaceDanceDetail(data, score, assignmentMap, memberByTeam, week, dance); },
+    openCast: (id) => openWorkspaceCastProfile(data.cast.find((member) => member.id === id)) });
+});
 
 export function stopSecondaryLeague() {
   $('#workspaceReadOnlyBanner')?.remove();
