@@ -406,6 +406,9 @@ def parse_information(html, mode, couples=None, week_tag=None, page_url=DEFAULT_
             if mode == "pre-show":
                 data["dance"] = field_value(row, columns, "dance")
                 data.update(music_information(field_value(row, columns, "music")))
+                # The table's row order is the running order; the importer orders dances by it.
+                data["table_index"] = table_index
+                data["row_index"] = row_index
             elif mode == "live-show":
                 data.update(score_information(field_value(row, columns, "scores")))
                 data["table_index"] = table_index
