@@ -97,3 +97,34 @@ for (const week of parityFixture.weeks) {
 }
 
 console.log('League scoring fixtures verified.');
+
+// Injured / suspended dancers (dance_cast_changes) — keep in step with CastChangeScoringTests (iOS).
+{
+  const withFillIn = (castChanges, ownCouple = false) => ({
+    ...fixture,
+    cast: [...fixture.cast, { id: 'fill', role: 'Eliminated Pro' }, { id: 'star2', role: 'Star' }],
+    roles: [...fixture.roles, { id: 'epro', name: 'Eliminated Pro', appearance_points: 6 }],
+    appearances: [...fixture.appearances, { dance_id: 'dance-1', cast_member_id: 'fill' }],
+    snapshots: [...fixture.snapshots,
+      { week_id: 'week-1', cast_member_id: 'fill', fantasy_team_id: 'team-b', cast_role: 'Eliminated Pro' },
+      { week_id: 'week-1', cast_member_id: 'star2', fantasy_team_id: 'team-b', cast_role: 'Star' },
+      { week_id: 'week-2', cast_member_id: 'fill', fantasy_team_id: 'team-b', cast_role: 'Eliminated Pro' },
+      { week_id: 'week-2', cast_member_id: 'star2', fantasy_team_id: 'team-b', cast_role: 'Star' }],
+    pairs: ownCouple ? [...fixture.pairs, { id: 'pair2', star_id: 'star2', pro_id: 'fill', active: true }] : fixture.pairs,
+    dances: ownCouple ? [...fixture.dances, { id: 'dance-3', week_id: 'week-1', kind: 'competitive', partnership_id: 'pair2' }] : fixture.dances,
+    scores: ownCouple ? [...fixture.scores, { dance_id: 'dance-3', score: 5 }, { dance_id: 'dance-3', score: 5 }] : fixture.scores,
+    castChanges,
+  });
+  const suspended = scoreLeague(withFillIn([{ dance_id: 'dance-1', cast_member_id: 'pro', reason: 'suspended', replacement_cast_member_id: 'fill' }]), active);
+  assert.equal(suspended.totalByTeam.get('team-a'), 60, 'a suspended Pro earns nothing for that dance');
+  assert.equal(suspended.totalByTeam.get('team-b'), 54, 'the fill-in earns the full score instead of the appearance');
+  const injured = scoreLeague(withFillIn([{ dance_id: 'dance-1', cast_member_id: 'pro', reason: 'injured', replacement_cast_member_id: 'fill' }]), active);
+  assert.equal(injured.pointsByWeekCast.get('week-1:pro').official, 17, 'an injured Pro keeps half, rounded up');
+  assert.equal(injured.totalByTeam.get('team-a'), 77);
+  const twice = scoreLeague(withFillIn([{ dance_id: 'dance-1', cast_member_id: 'pro', reason: 'suspended', replacement_cast_member_id: 'fill' }], true), active);
+  assert.equal(twice.pointsByWeekCast.get('week-1:fill').official, 27, 'a fill-in who also danced with their own couple gets half');
+  assert.equal(twice.totalByTeam.get('team-b'), 57);
+  assert.equal(scoreLeague(withFillIn([{ dance_id: 'dance-1', cast_member_id: 'star', reason: 'injured' }]), active).totalByTeam.get('team-a'), 94);
+  assert.equal(scoreLeague(withFillIn([{ dance_id: 'dance-1', cast_member_id: 'star', reason: 'suspended' }]), active).totalByTeam.get('team-a'), 60);
+  assert.equal(scoreLeague(withFillIn([]), active).totalByTeam.get('team-b'), 26);
+}
