@@ -129,7 +129,7 @@ function openWorkspaceCastProfile(cast, teamName = 'Available cast', backAction 
   const linkedPartner = partner && ['Star', 'Pro', 'Eliminated Star', 'Eliminated Pro'].includes(partner.role);
   const predictionStarId = activePair ? pair.star_id : null;
   const predictionWeek = nextPredictionWeek(state?.data.weeks || []);
-  const showWeeklyPrediction = Boolean(activePair && predictionWeek && !predictionWeek.is_complete && !predictionWeek.is_finale);
+  const showWeeklyPrediction = Boolean(activePair && predictionWeek && !predictionWeek.is_complete && !predictionWeek.is_season_finale);
   const weeklyDance = showWeeklyPrediction ? state.data.dances.find((dance) => dance.week_id === predictionWeek.id
     && dance.partnership_id === pair.id && dance.kind === 'competitive') : null;
   const activePredictions = activePartnershipPredictionRows(state?.predictions || [], state?.data.pairs, state?.data.cast);

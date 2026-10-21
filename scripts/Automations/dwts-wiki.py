@@ -335,6 +335,11 @@ def score_information(raw):
     return info
 
 
+NO_ELIMINATION = re.compile(r"\bno elimination (took place|this week|occurred|was held)\b"
+                            r"|\bno (couple|couples|one) (was|were) eliminated\b"
+                            r"|\bnon-elimination (week|episode|round)\b")
+
+
 def elimination_information(raw):
     eliminated = None
     if raw:
@@ -420,6 +425,15 @@ def parse_information(html, mode, couples=None, week_tag=None, page_url=DEFAULT_
                 data.update(elimination_information(field_value(row, columns, "result")))
             record["found"] = True
             record["performances"].append(data)
+    # No result column at all, but the week's text says nobody went home: every couple is safe.
+    if mode == "post-show" and not recognized:
+        section_text = normalized(clean(" ".join(node.text() for node in week["nodes"] if node.tag in {"p", "div", "ul", "dl"})))
+        if NO_ELIMINATION.search(section_text):
+            result["no_elimination"] = True
+            for record in records:
+                record["found"] = True
+                record["performances"] = [{"eliminated": False}]
+            recognized = 1
     result["couples"] = records
     result["warnings"] = warnings
     if not recognized:

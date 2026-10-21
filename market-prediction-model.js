@@ -48,7 +48,7 @@ export function seasonPredictionsFor(starId, rows, now = Date.now()) {
 }
 
 export function weeklyPredictionFor(starId, week, rows, now = Date.now()) {
-  if (!starId || !week || week.is_complete || week.is_finale
+  if (!starId || !week || week.is_complete || week.is_season_finale
       || !week.elimination_predictions_enabled || easternDateTime(now) >= finalAiringEnd(week)) return null;
   const row = rows.find((item) => item.cast_member_id === starId
     && item.week_id === week.id && item.market_kind === 'elimination'

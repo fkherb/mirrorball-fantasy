@@ -1,0 +1,23 @@
+-- Applied live 2026-10-21 as migration 20261021175631_separate_no_elimination_from_finale
+-- (full text: supabase_migrations.schema_migrations). Summary of what changed:
+--
+-- • weeks.no_elimination (boolean, default false): the week was completed with nobody sent
+--   home. Chosen when completing the week; unrelated to the season finale (is_season_finale).
+-- • weeks.is_finale is retired and kept false (older app builds read it as the season's end).
+--   Week 6 (completed with no elimination) was moved to no_elimination = true.
+-- • complete_week: expects 0 eliminated couples when no_elimination, 2 when double_elimination,
+--   else 1, and clears is_finale.
+-- • complete_week_with_format(p_week_id, p_format 'none'|'standard'|'double', p_eliminated):
+--   platform owner only; records the format on the week, then calls complete_week. Used by the
+--   website's and the app's Complete Week.
+-- • set_week_no_elimination (app build 24's switch) now sets no_elimination.
+-- • update_week_setup_and_order ignores p_is_finale (week settings no longer set it);
+--   update_completed_week_details maps p_is_finale to no_elimination (Elimination format on a
+--   completed week).
+-- • update_week_setup_with_market_schedule: predictions are off only for the season finale.
+-- • elimination_pick_open: no picks for the season finale only.
+-- • dwts_work_ready / claim_dwts_work: post-show stops for no_elimination weeks.
+--
+-- The post-show automation (scripts/Automations/dwts-wiki.py) also reads "No elimination took
+-- place" in a week's text when there's no Result column, so every couple is confirmed safe and
+-- Complete Week opens on "No elimination".

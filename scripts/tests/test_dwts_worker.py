@@ -114,6 +114,24 @@ class WorkerTests(unittest.TestCase):
         self.assertEqual([item['performances'][0]['table_index'] for item in result['couples']], [0, 0])
 
 
+    def test_post_show_no_elimination_text_marks_every_couple_safe(self):
+        html = '''<h2 id="Weekly_scores">Weekly scores</h2>
+            <h3 id="Week_6:_Test">Week 6: Test</h3>
+            <p>Each couple performed one unlearned dance. No elimination took place this week;
+            all scores were carried over to the following week.</p>
+            <table><tr><th>Couple</th><th>Scores</th><th>Dance</th></tr>
+            <tr><td>Amber &amp; Pasha</td><td>38 (10, 9, 10, 9)</td><td>Contemporary</td></tr></table>'''
+        couples = {'Amber Glenn': 'Pasha Pashkov', 'Connor Wood': 'Rylee Arnold'}
+        result = self.w.wiki.parse_information(html, 'post-show', couples, '#Week_6:_Test')
+        self.assertTrue(result.get('no_elimination'))
+        self.assertEqual([c['performances'] for c in result['couples']], [[{'eliminated': False}]] * 2)
+        # Without that sentence (results not posted yet), nothing is guessed.
+        pending = self.w.wiki.parse_information(html.replace('No elimination took place this week;', ''),
+                                                'post-show', couples, '#Week_6:_Test')
+        self.assertFalse(pending.get('no_elimination'))
+        self.assertFalse(any(c['found'] for c in pending['couples']))
+
+
     def test_until_idle_exits_when_nothing_is_due_soon(self):
         far = '2099-01-01T00:00:00+00:00'
         with patch.object(self.w, 'api', return_value={'run_id': None, 'next_run_at': far}) as api, \

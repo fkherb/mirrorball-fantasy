@@ -53,7 +53,7 @@ export function jobStatus(job, data, week, now = Date.now()) {
   if (new Date(job.lease_until).getTime() > now) return 'Running';
   if (job.mode === 'get-weeks' && settings.wiki_tag) return 'Tag ready';
   if (job.mode !== 'get-weeks' && job.pending === 0) return 'Done';
-  if (job.mode === 'post-show' && (week.is_finale || job.elimination_found)) return week.is_finale ? 'No elimination' : 'Elimination confirmed';
+  if (job.mode === 'post-show' && (week.no_elimination || job.elimination_found)) return week.no_elimination ? 'No elimination' : 'Elimination confirmed';
   if (job.mode !== 'photos' && job.mode !== 'get-weeks' && !settings.wiki_tag) return 'Waiting for Wikipedia tag';
   if (['photos','live-show','post-show'].includes(job.mode) && !job.window) return 'Airing window unavailable or ended';
   if (job.mode === 'photos' && new Date(data.worker?.photos_not_before).getTime() > now) return `Cooldown until ${date(data.worker.photos_not_before)}`;
