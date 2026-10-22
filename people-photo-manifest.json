@@ -68,8 +68,8 @@
       "sourceSha": "e24fb0362819e65a",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
+          "x": 45.04,
+          "y": 3.47,
           "zoom": 2.2
         },
         "card": {
@@ -78,12 +78,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 44.92,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "ec84c54b2f025897",
+      "key": "6e021b7d21f8abc2",
       "files": {
         "profile": "Images/People/Brandon Armstrong/profile.webp",
         "card": "Images/People/Brandon Armstrong/card.webp",
@@ -98,9 +98,9 @@
       "sourceSha": "bcdb26f60a3ba9c6",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 52.74,
+          "y": 6.39,
+          "zoom": 1.95
         },
         "card": {
           "x": 50,
@@ -108,12 +108,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 52.94,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "3343a0d93575133a",
+      "key": "6e8abdd7eb7dfb84",
       "files": {
         "profile": "Images/People/Britt Stewart/profile.webp",
         "card": "Images/People/Britt Stewart/card.webp",
@@ -128,9 +128,9 @@
       "sourceSha": "94f92c160cef8ee7",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 45.87,
+          "y": 10.28,
+          "zoom": 1.59
         },
         "card": {
           "x": 50,
@@ -138,12 +138,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 46.08,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "ad7546289c7714be",
+      "key": "2ba8647887ae16ec",
       "files": {
         "profile": "Images/People/Daniella Karagach/profile.webp",
         "card": "Images/People/Daniella Karagach/card.webp",
@@ -160,7 +160,7 @@
         "profile": {
           "x": 50,
           "y": 10,
-          "zoom": 2.2
+          "zoom": 1.62
         },
         "card": {
           "x": 50,
@@ -173,7 +173,7 @@
           "zoom": 1
         }
       },
-      "key": "63934e27e00869d2",
+      "key": "448f82e6efe97d20",
       "files": {
         "profile": "Images/People/Emma Slater/profile.webp",
         "card": "Images/People/Emma Slater/card.webp",
@@ -188,9 +188,9 @@
       "sourceSha": "5f6409628d899009",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 54.79,
+          "y": 0,
+          "zoom": 1.38
         },
         "card": {
           "x": 50,
@@ -198,12 +198,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 54.63,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "afec7296b2d77167",
+      "key": "dcb26c49f8d2bf90",
       "files": {
         "profile": "Images/People/Ezra Sosa/profile.webp",
         "card": "Images/People/Ezra Sosa/card.webp",
@@ -218,9 +218,9 @@
       "sourceSha": "ca281976324e6130",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 63.75,
+          "y": 0,
+          "zoom": 1.51
         },
         "card": {
           "x": 50,
@@ -228,12 +228,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 64.62,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "e2fb5daa9030efc1",
+      "key": "149da1d6df9caa75",
       "files": {
         "profile": "Images/People/Hailey Bills/profile.webp",
         "card": "Images/People/Hailey Bills/card.webp",
@@ -248,9 +248,9 @@
       "sourceSha": "e8db31a1b2df5141",
       "crops": {
         "profile": {
-          "x": 50,
+          "x": 44.56,
           "y": 10,
-          "zoom": 2.2
+          "zoom": 1
         },
         "card": {
           "x": 50,
@@ -258,12 +258,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 44.47,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "df9926e5bcf870e6",
+      "key": "64058fd8f355c75c",
       "files": {
         "profile": "Images/People/Jan Ravnik/profile.webp",
         "card": "Images/People/Jan Ravnik/card.webp",
@@ -278,9 +278,9 @@
       "sourceSha": "74dddd80262c2d01",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 51.49,
+          "y": 8.8,
+          "zoom": 1.69
         },
         "card": {
           "x": 50,
@@ -293,7 +293,7 @@
           "zoom": 1
         }
       },
-      "key": "6dc8d9e74b5f41a8",
+      "key": "8bdae346b008135c",
       "files": {
         "profile": "Images/People/Jenna Johnson/profile.webp",
         "card": "Images/People/Jenna Johnson/card.webp",
@@ -308,9 +308,9 @@
       "sourceSha": "7e63e433e8052e88",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 48.75,
+          "y": 4.1,
+          "zoom": 1.94
         },
         "card": {
           "x": 50,
@@ -318,12 +318,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 48.04,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "6110676edb923dd1",
+      "key": "9c4a5a516e11d2bf",
       "files": {
         "profile": "Images/People/Mark Ballas/profile.webp",
         "card": "Images/People/Mark Ballas/card.webp",
@@ -338,9 +338,9 @@
       "sourceSha": "616b8ee7b0f13489",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 37.24,
+          "y": 0,
+          "zoom": 1.36
         },
         "card": {
           "x": 50,
@@ -348,12 +348,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 36.1,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "25bc19dedcfde13f",
+      "key": "8d294bfc94c22b7e",
       "files": {
         "profile": "Images/People/Pasha Pashkov/profile.webp",
         "card": "Images/People/Pasha Pashkov/card.webp",
