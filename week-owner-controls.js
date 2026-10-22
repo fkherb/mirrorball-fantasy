@@ -1,25 +1,18 @@
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261022-people-v116';
-
 const escape = (value = '') => String(value ?? '').replace(/[&<>"']/g, (c) => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const normalizedName = (name = '') => name.trim().replace(/\s+/g, ' ');
+/** A guest's rendered portrait (Assets/Guest/<Name>, framed in the app's People & Photos). */
 export function guestPhotoPath(name) {
   const value = normalizedName(name);
   return value && value.length <= 100 && !/[/\\?#%]|\.\./.test(value)
-    ? `Images/Guests/${value}.jpeg` : '';
+    ? `Images/People/${value}/portrait.webp` : '';
 }
-const imageUrl = (path, assetRoot) => `${assetRoot}${path.split('/').map(encodeURIComponent).join('/')}?v=20261014-guests`;
-const frame = (value) => avatarFrameFor({ profile_details: { _avatar_frame: value } });
+const imageUrl = (path, assetRoot) => `${assetRoot}${path.split('?')[0].split('/').map(encodeURIComponent).join('/')}`;
 
 export function guestPhotoFields(week) {
-  const crop = frame(week.guest_judge_avatar_frame);
   return `<fieldset class="guest-photo-editor" ${week.guest_judge_name ? '' : 'hidden'}>
     <legend>Guest judge photo</legend>
-    <label>Photo<select data-guest-photo-choice><option value="">Automatic · match guest name</option></select></label>
-    <p class="sub">Upload <b>First Last.jpeg</b> to <b>Images/Guests</b>. Names and capitalization must match. No cast member is needed.</p>
-    <div class="guest-photo-preview-row"><span class="guest-photo-preview"></span><p data-guest-photo-status role="status"></p></div>
-    ${[['x','Horizontal position',0,100,1],['y','Vertical position',0,100,1],['zoom','Zoom',1,3,0.05]].map(([key,label,min,max,step]) =>
-      `<label>${label}<input data-guest-crop="${key}" type="range" min="${min}" max="${max}" step="${step}" value="${crop[key]}"></label>`).join('')}
-    <button type="button" class="secondary" data-guest-reset>Reset framing</button>
+    <div class="guest-photo-preview-row"><span class="guest-photo-preview cast-avatar-frame"></span><p data-guest-photo-status role="status"></p></div>
+    <p class="sub">Guests and their photos come from <b>Assets/Guest/&lt;Name&gt;</b>. Set the crop in the app under People &amp; Photos.</p>
   </fieldset>`;
 }
 
@@ -27,61 +20,29 @@ export function bindGuestPhotoEditor(root, week, assetRoot = '') {
   const editor = root.querySelector('.guest-photo-editor');
   const nameInput = root.querySelector('#guestJudgeName');
   const enabled = root.querySelector('#guestJudgeEnabled');
-  const choice = editor.querySelector('[data-guest-photo-choice]');
   const status = editor.querySelector('[data-guest-photo-status]');
   const preview = editor.querySelector('.guest-photo-preview');
-  let currentName = normalizedName(nameInput.value);
   let currentPath = null;
-  let photoExists = false;
-  const savedPath = week.guest_judge_image_path;
-  if (savedPath && savedPath !== guestPhotoPath(currentName)) {
-    choice.add(new Option(savedPath.split('/').at(-1), savedPath, true, true));
-  }
-  const read = () => ({
-    p_guest_judge_image_path: enabled.checked ? choice.value || null : null,
-    p_guest_judge_avatar_frame: enabled.checked ? Object.fromEntries([...editor.querySelectorAll('[data-guest-crop]')]
-      .map((input) => [input.dataset.guestCrop, Number(input.value)])) : {},
-  });
-  const reset = () => editor.querySelectorAll('[data-guest-crop]').forEach((input) => {
-    input.value = input.dataset.guestCrop === 'zoom' ? 1 : 50;
-  });
   function render() {
     const name = normalizedName(nameInput.value);
-    if (name !== currentName) { currentName = name; choice.value = ''; reset(); }
     editor.hidden = !enabled.checked;
-    const path = enabled.checked ? choice.value || guestPhotoPath(name) : '';
-    if (path !== currentPath) {
-      currentPath = path; photoExists = false; preview.replaceChildren();
-      status.textContent = path ? `Loading ${path}…` : 'Enter the guest’s full name to preview their photo.';
-      if (path) {
-        const img = document.createElement('img'); img.alt = `${name} headshot preview`;
-        // The app’s global image fallback must not conceal missing guest uploads.
-        img.dataset.fallbackApplied = 'true';
-        img.addEventListener('load', () => { if (currentPath === path) { photoExists = true; status.textContent = path; } });
-        img.addEventListener('error', () => { if (currentPath === path) {
-          img.hidden = true; status.textContent = `Photo not found yet: ${path}. Check the filename and publish the upload.`;
-        } });
-        img.src = imageUrl(path,assetRoot); preview.append(img);
-      }
-    }
-    const img = preview.querySelector('img');
-    if (img) img.style.cssText = avatarImageStyle({ profile_details: { _avatar_frame: read().p_guest_judge_avatar_frame } });
-    if (photoExists) status.textContent = path;
+    const path = enabled.checked ? guestPhotoPath(name).replace('/portrait.webp', '/profile.webp') : '';
+    if (path === currentPath) return;
+    currentPath = path; preview.replaceChildren();
+    status.textContent = path ? name : 'Choose the guest judge.';
+    if (!path) return;
+    const img = document.createElement('img'); img.alt = `${name} headshot`;
+    img.dataset.fallbackApplied = 'true';
+    img.addEventListener('error', () => { if (currentPath === path) {
+      img.hidden = true; status.textContent = `${name} has no photo yet. Add Assets/Guest/${name}/${name}.jpg and push.`;
+    } });
+    img.src = imageUrl(path, assetRoot); preview.append(img);
   }
-  nameInput.addEventListener('input',render); enabled.addEventListener('change',render);
-  choice.addEventListener('change',render);
-  editor.querySelectorAll('[data-guest-crop]').forEach((input) => input.addEventListener('input',render));
-  editor.querySelector('[data-guest-reset]').addEventListener('click',() => { reset(); render(); });
+  nameInput.addEventListener('input', render); nameInput.addEventListener('change', render);
+  enabled.addEventListener('change', render);
   render();
-  fetch(`${assetRoot}cast-thumbnail-manifest.json`, { cache:'no-cache' }).then((response) => response.ok ? response.json() : null)
-    .then((manifest) => {
-      if (!root.isConnected) return;
-      for (const entry of manifest?.entries || []) {
-        if (!entry.source.startsWith('Images/Guests/') || [...choice.options].some((o) => o.value===entry.source)) continue;
-        choice.add(new Option(entry.source.split('/').at(-1),entry.source));
-      }
-    }).catch(() => {}); // Automatic filename lookup still works without the manifest.
-  return read;
+  // The database sets the photo from the guest's name, so nothing extra is saved.
+  return () => ({ p_guest_judge_image_path: null, p_guest_judge_avatar_frame: {} });
 }
 
 const time = (value) => value ? new Date(value).toLocaleString('en-US', {

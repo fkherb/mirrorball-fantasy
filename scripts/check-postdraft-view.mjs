@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail,
-  castRosterRow, danceCard, teamPage, roleRatesTable, castProfile, danceDetail, danceGallery, judgePortraitFor, judgeMemberFor } from '../postdraft-view.js';
+  castRosterRow, danceCard, teamPage, roleRatesTable, castProfile, danceDetail, danceGallery, judgePortraitFor, judgeMemberFor, castThumbnailFor } from '../postdraft-view.js';
 import { danceSongParts, danceSongLabel, joinDanceSong } from '../dance-song.js';
 import { avatarFrameFor, avatarImageStyle } from '../cast-avatar-frame.js';
 import { couplePhotoFrameFor, couplePhotoStyle } from '../couple-photo-frame.js';
@@ -149,8 +149,9 @@ assert.doesNotMatch(danceCard({ id: 'opening-photo', kind: 'performance', title:
   scores: [], castNames: ['One'], photos: ['/dance.jpg'] }), /dance-performance-cast/);
 assert.match(danceCard({ id: 'opening-poster', kind: 'performance', title: 'Opening',
   scores: [], castNames: ['One'], poster: true }), /dance-performance-cast/);
-assert.equal(judgePortraitFor('Derek Hough'), 'Images/Cast Thumbnails/Derek Hough.webp?v=2');
-assert.equal(judgePortraitFor('Carrie Ann', '../'), '../Images/Cast Thumbnails/Carrie Ann Inaba.webp?v=2');
+assert.equal(judgePortraitFor('Derek Hough'), 'Images/People/Derek Hough/profile.webp');
+assert.equal(judgePortraitFor('Carrie Ann', '../'), '../Images/People/Carrie Ann Inaba/profile.webp');
+assert.equal(castThumbnailFor('Images/People/Emma Slater/portrait.webp?v=3'), 'Images/People/Emma Slater/profile.webp?v=3');
 assert.equal(judgePortraitFor('Unknown Guest'), '');
 assert.equal(judgeMemberFor('Carrie Ann', [{ name: 'Carrie Ann Inaba', profile_details: {} }])?.name, 'Carrie Ann Inaba');
 assert.match(danceCard({ id: 'judge-frame', kind: 'competitive', title: 'Pair', scores: [{ judge_name: 'Derek', score: 7 }],

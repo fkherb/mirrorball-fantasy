@@ -1,22 +1,21 @@
-import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261022-people-v116';
-import { observeResults, configureSpoilers } from './spoiler-settings.js?v=20261022-people-v116';
-import { competitiveAwards } from './scoring.js?v=20261022-people-v116';
+import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261022-people-v117';
+import { observeResults, configureSpoilers } from './spoiler-settings.js?v=20261022-people-v117';
+import { competitiveAwards } from './scoring.js?v=20261022-people-v117';
 let appAccess = {};
-import { judgeOrderFor, sortJudgeScores, regularJudgeNames, loadRegularJudges } from './judge-panel.js?v=20261022-people-v116';
-import { db } from './supabase-client.js?v=20261022-people-v116';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261022-people-v116';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261022-people-v116';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261022-people-v116';
-import { loadMarketPredictions } from './market-predictions.js?v=20261022-people-v116';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261022-people-v116';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261022-people-v116';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261022-people-v116';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261022-people-v116';
-import { avatarFrameFor, avatarImageStyle } from './cast-avatar-frame.js?v=20261022-people-v116';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261022-people-v116';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261022-people-v116';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261022-people-v116';
-import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261022-people-v116';
+import { judgeOrderFor, sortJudgeScores, regularJudgeNames, loadRegularJudges } from './judge-panel.js?v=20261022-people-v117';
+import { db } from './supabase-client.js?v=20261022-people-v117';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261022-people-v117';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261022-people-v117';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261022-people-v117';
+import { loadMarketPredictions } from './market-predictions.js?v=20261022-people-v117';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261022-people-v117';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261022-people-v117';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261022-people-v117';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261022-people-v117';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261022-people-v117';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261022-people-v117';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261022-people-v117';
+import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261022-people-v117';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -29,7 +28,8 @@ startDanceImageUpdates();
 const danceAsset = (url) => url?.startsWith('Images/') ? `${assetRoot}${url}` : url;
 const roles = ['Star', 'Pro', 'Eliminated Star', 'Eliminated Pro', 'Troupe', 'DWTS Next Pro', 'Judges + Hosts', 'Surprise'];
 const assignableRoles = roles.filter((role) => !role.startsWith('Eliminated'));
-const storedImagePathFor = (name) => `Images/${name.replace(/[.,'’]/g, '')}.jpg`;
+// Cast photos come from Assets/<Category>/<Name> (rendered into Images/People by the people-photos Action).
+const storedImagePathFor = (name) => `Images/People/${name}/portrait.webp`;
 const imagePathFor = (name) => `${assetRoot}${storedImagePathFor(name)}`;
 const imageFallback = `data:image/svg+xml;charset=UTF-8,${encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 80"><rect width="80" height="80" rx="12" fill="#eee8ed"/><circle cx="40" cy="29" r="14" fill="#c9bdc6"/><path d="M15 76c2-18 12-28 25-28s23 10 25 28" fill="#c9bdc6"/></svg>')}`;
 const displayImagePath = (member) => {
@@ -382,19 +382,16 @@ async function editPlayer(id) {
     const player = players.find((item) => item.id === id);
     const partner = partnerFor(player, partnerships, players);
     const partnership = partnerships.find((item) => item.star_id === player.id || item.pro_id === player.id);
-    const avatarFrame = avatarFrameFor(player);
     const coupleStar = partnership && players.find((item) => item.id === partnership.star_id);
     const couplePro = partnership && players.find((item) => item.id === partnership.pro_id);
     const couplePicture = coupleStar && couplePro ? couplePhotoFor(`${coupleStar.name} & ${couplePro.name}`) : '';
     const coupleFrame = couplePhotoFrameFor(coupleStar, couplePro?.id);
-    openModal(`<div class="cast-modal-heading"><img id="editPhotoPreview" class="cast-modal-photo" style="object-position:${player.image_position ?? 50}% center" src="${escapeHtml(displayImagePath(player))}" alt=""><div><p class="eyebrow">Cast Member</p><h2>${escapeHtml(player.name)}</h2><p class="sub">Update cast details, partnership, or portrait framing.</p></div></div>
+    openModal(`<div class="cast-modal-heading"><img id="editPhotoPreview" class="cast-modal-photo" style="object-position:${player.image_position ?? 50}% center" src="${escapeHtml(displayImagePath(player))}" alt=""><div><p class="eyebrow">Cast Member</p><h2>${escapeHtml(player.name)}</h2><p class="sub">Update cast details or partnership. Photos and crops are set in the app under People &amp; Photos.</p></div></div>
       <label>Role<select id="editRole" ${player.role.startsWith('Eliminated') ? 'disabled' : ''}>${(player.role.startsWith('Eliminated') ? [player.role] : assignableRoles).map((role) => `<option ${role === player.role ? 'selected' : ''}>${role}</option>`).join('')}</select>${player.role.startsWith('Eliminated') ? '<span class="range-note">Eliminated roles are managed by completing a week.</span>' : ''}</label>
       <div id="roleDetailField" ${player.role === 'Judges + Hosts' ? '' : 'hidden'}><label>Type<select id="editRoleDetail"><option ${player.role_detail === 'Judge' ? 'selected' : ''}>Judge</option><option ${player.role_detail === 'Host' ? 'selected' : ''}>Host</option><option ${!player.role_detail || player.role_detail === 'Judge + Host' ? 'selected' : ''}>Judge + Host</option></select></label><label class="check-row"><input id="editIsHough" type="checkbox" ${player.is_hough || player.role === 'Hough' ? 'checked' : ''}> Hough scoring rate</label></div>
       <div id="surpriseRate" ${player.role === 'Surprise' ? '' : 'hidden'}><label>Normal scoring role<select id="editSurpriseBaseRole"><option value="">Select a role</option>${['Eliminated Pro', 'Eliminated Star', 'Troupe', 'DWTS Next Pro', 'Judges + Hosts'].map((role) => `<option ${player.surprise_base_role === role ? 'selected' : ''}>${role}</option>`).join('')}</select></label><p class="sub">All leagues score Surprise cast at this role’s current rate plus 2, including past weeks.</p></div>
       <label id="partnerField" ${isAnyPairRole(player.role) ? '' : 'hidden'}>Partner<select id="editPartner"><option value="">No partner</option>${partnerOptions(activePairRole(player.role), players, partnerships, partner?.id)}</select></label>
       <label id="partnershipNameField" ${partner ? '' : 'hidden'}>Partnership name <span class="optional">(optional)</span><input id="partnershipName" value="${escapeHtml(partnership?.partnership_name || '')}" placeholder="e.g., Team Sparkle"></label>
-      <label>Portrait position<input id="imagePosition" type="range" min="0" max="100" value="${player.image_position ?? 50}"><span class="range-note">Move left or right to center the image.</span></label>
-      <fieldset class="cast-avatar-editor"><legend>Frame profile picture</legend><div class="cast-avatar-preview-row"><span class="cast-avatar-frame"><img id="avatarFramePreview" src="${escapeHtml(displayImagePath(player))}" style="${avatarImageStyle(player)}" alt="Small circular preview of ${escapeHtml(player.name)}"></span><p>This separate crop is used in partner tags and dance cast pills. The full portrait stays as framed above.</p></div><label>Zoom<input id="avatarZoom" type="range" min="1" max="3" step="0.1" value="${avatarFrame.zoom}"></label><label>Move left or right<input id="avatarFrameX" type="range" min="0" max="100" value="${avatarFrame.x}"></label><label>Move up or down<input id="avatarFrameY" type="range" min="0" max="100" value="${avatarFrame.y}"></label></fieldset>
       ${couplePicture ? `<fieldset id="coupleFrameFields" class="cast-avatar-editor couple-photo-editor"><legend>Frame couple photo</legend><div class="couple-photo-preview"><img id="coupleFramePreview" src="${escapeHtml(danceAsset(couplePicture))}" style="${couplePhotoStyle(coupleFrame)}" alt="Preview of ${escapeHtml(coupleStar.name)} and ${escapeHtml(couplePro.name)}"></div><p class="range-note">This crop is used only as the dance-card placeholder. Save a new partnership before framing its photo.</p><label>Zoom<input id="coupleZoom" type="range" min="1" max="2.5" step="0.1" value="${coupleFrame.zoom}"></label><label>Move left or right<input id="coupleFrameX" type="range" min="0" max="100" value="${coupleFrame.x}"></label><label>Move up or down<input id="coupleFrameY" type="range" min="0" max="100" value="${coupleFrame.y}"></label></fieldset>` : ''}
       <label>Biography <span class="optional">(optional)</span><textarea id="editBio" rows="4">${escapeHtml(player.bio || '')}</textarea></label>
       <label>Career highlights <span class="optional">(optional)</span><textarea id="editCareerHighlights" rows="3">${escapeHtml(player.career_highlights || '')}</textarea></label>
@@ -414,14 +411,6 @@ async function editPlayer(id) {
       $('#partnershipNameField').hidden = !event.target.value;
       if ($('#coupleFrameFields')) $('#coupleFrameFields').hidden = event.target.value !== partner?.id;
     });
-    $('#imagePosition').addEventListener('input', (event) => { $('#editPhotoPreview').style.objectPosition = `${event.target.value}% center`; });
-    const updateAvatarPreview = () => {
-      $('#avatarFramePreview').style.cssText = avatarImageStyle({ profile_details: { _avatar_frame: {
-        x: Number($('#avatarFrameX').value), y: Number($('#avatarFrameY').value),
-        zoom: Number($('#avatarZoom').value),
-      } } });
-    };
-    ['#avatarZoom', '#avatarFrameX', '#avatarFrameY'].forEach((selector) => $(selector).addEventListener('input', updateAvatarPreview));
     if (couplePicture) {
       const updateCouplePreview = () => {
         $('#coupleFramePreview').style.cssText = couplePhotoStyle({
@@ -441,7 +430,7 @@ async function editPlayer(id) {
       const partnershipName = $('#editPartner').value ? $('#partnershipName').value.trim() || null : null;
       const { error: saveError } = await db.rpc(role === 'Surprise' ? 'save_cast_member_profile_with_surprise_role' : 'save_cast_member_profile_atomic', {
         p_cast_member_id: id, p_name: player.name, p_role: role,
-        p_image_path: player.image_path || storedImagePathFor(player.name), p_image_position: Number($('#imagePosition').value),
+        p_image_path: player.image_path || storedImagePathFor(player.name), p_image_position: player.image_position ?? 50,
         p_custom_appearance_points: role === 'Surprise' ? (roleRates.get($('#editSurpriseBaseRole').value) ?? 0) + 2 : null,
         p_role_detail: role === 'Judges + Hosts' ? $('#editRoleDetail').value : null,
         p_is_hough: role === 'Judges + Hosts' && $('#editIsHough').checked,
@@ -453,10 +442,7 @@ async function editPlayer(id) {
       if (saveError) { saveButton.disabled = false; return alert(`Couldn’t save ${player.name}: ${saveError.message}`); }
       const profileDetails = player.profile_details && typeof player.profile_details === 'object'
         && !Array.isArray(player.profile_details) ? { ...player.profile_details } : {};
-      profileDetails._avatar_frame = {
-        x: Number($('#avatarFrameX').value), y: Number($('#avatarFrameY').value),
-        zoom: Number($('#avatarZoom').value),
-      };
+      delete profileDetails._avatar_frame;
       const saveCoupleFrame = couplePicture && !$('#coupleFrameFields').hidden;
       const coupleFrames = saveCoupleFrame ? {
         ...(coupleStar.profile_details?._couple_photo_frames || {}),
@@ -467,7 +453,7 @@ async function editPlayer(id) {
       } : null;
       if (saveCoupleFrame && coupleStar.id === id) profileDetails._couple_photo_frames = coupleFrames;
       const { error: frameError } = await db.from('cast_members').update({ profile_details: profileDetails }).eq('id', id);
-      if (frameError) { saveButton.disabled = false; return alert(`Cast details saved, but the small photo frame could not be saved: ${frameError.message}`); }
+      if (frameError) { saveButton.disabled = false; return alert(`Cast details saved, but the couple photo frame could not be saved: ${frameError.message}`); }
       if (saveCoupleFrame && coupleStar.id !== id) {
         const starDetails = coupleStar.profile_details && typeof coupleStar.profile_details === 'object'
           && !Array.isArray(coupleStar.profile_details) ? { ...coupleStar.profile_details } : {};

@@ -197,3 +197,74 @@ revoke execute on function public.pending_people_bios(), public.record_people_bi
 -- The worker calls these with the service role, which needs an explicit grant once public is revoked.
 grant execute on function public.sync_people_assets(jsonb), public.record_people_photos_rendered(jsonb),
   public.pending_people_bios(), public.record_people_bios(jsonb) to service_role;
+
+-- 2026-10-22: Images/People replaces Images/<Name>.jpg, Images/Cast Thumbnails and Images/Guests.
+-- cast_members.image_path and weeks.guest_judge_image_path always point at the rendered portrait
+-- (Images/People/<Name>/portrait.webp?v=<photo_version>); clients swap portrait → profile for circles.
+-- Crops are baked into the files, so _avatar_frame and guest_judge_avatar_frame are no longer used.
+create or replace function public.people_photo_path(p_name text, p_variant text default 'portrait') returns text
+language sql stable security definer set search_path to '' as $$
+  select 'Images/People/' || a.name || '/' || p_variant || '.webp?v=' || a.photo_version
+  from public.people_assets a
+  where lower(a.name) = lower(btrim(p_name)) and a.photo_version > 0 and not a.missing and a.source_photo is not null
+  order by a.category = 'Guest' limit 1;
+$$;
+
+create or replace function public.cast_member_people_photo() returns trigger
+language plpgsql set search_path to '' as $$
+declare path text;
+begin
+  select 'Images/People/' || a.name || '/portrait.webp?v=' || a.photo_version into path
+  from public.people_assets a
+  where (a.cast_member_id = new.id or (a.cast_member_id is null and lower(a.name) = lower(btrim(new.name))))
+    and a.photo_version > 0 and not a.missing and a.source_photo is not null
+  order by a.cast_member_id is null limit 1;
+  if path is not null then
+    new.image_path := path;
+    new.image_position := 50;
+  end if;
+  return new;
+end $$;
+create trigger cast_members_people_photo before insert or update on public.cast_members
+  for each row execute function public.cast_member_people_photo();
+
+CREATE OR REPLACE FUNCTION public.validate_week_judge_display() RETURNS trigger
+LANGUAGE plpgsql SET search_path TO '' AS $function$
+declare expected text[] := public.regular_judge_names();
+begin
+  new.guest_judge_name := nullif(regexp_replace(btrim(new.guest_judge_name),'\s+',' ','g'),'');
+  if new.guest_judge_name is not null then expected := expected || array[new.guest_judge_name]; end if;
+  if tg_op='UPDATE' and new.guest_judge_name is distinct from old.guest_judge_name then
+    if new.judge_order is not distinct from old.judge_order then new.judge_order := null; end if;
+  end if;
+  new.judge_order := coalesce(new.judge_order,expected);
+  if cardinality(new.judge_order)<>cardinality(expected) or array_position(new.judge_order,null) is not null
+    or not new.judge_order @> expected or not new.judge_order <@ expected then
+    raise exception 'Judge order must contain every judge exactly once';
+  end if;
+  new.guest_judge_image_path := case when new.guest_judge_name is null then null
+    else public.people_photo_path(new.guest_judge_name, 'portrait') end;
+  new.guest_judge_avatar_frame := '{}'::jsonb;
+  return new;
+end $function$;
+
+CREATE OR REPLACE FUNCTION public.record_people_photos_rendered(p_rendered jsonb) RETURNS integer
+LANGUAGE plpgsql SECURITY DEFINER SET search_path TO 'public' AS $$
+declare r jsonb; n integer := 0; a public.people_assets%rowtype;
+begin
+  for r in select * from jsonb_array_elements(coalesce(p_rendered, '[]'::jsonb)) loop
+    update people_assets set rendered_crops = r->'crops', rendered_sha = r->>'source_sha',
+      photo_version = photo_version + 1, rendered_at = now(), updated_at = now()
+    where folder = r->>'folder' returning * into a;
+    if found then
+      n := n + 1;
+      if a.cast_member_id is not null then update cast_members set image_path = image_path where id = a.cast_member_id; end if;
+      if a.guest_id is not null then update weeks set guest_judge_name = guest_judge_name where guest_judge_id = a.guest_id; end if;
+    end if;
+  end loop;
+  return n;
+end $$;
+
+-- Backfill (run once): every cast member and guest-judge week to Images/People; drop the old avatar crops.
+update public.cast_members set image_path = image_path, profile_details = coalesce(profile_details, '{}'::jsonb) - '_avatar_frame';
+update public.weeks set guest_judge_name = guest_judge_name where guest_judge_name is not null;

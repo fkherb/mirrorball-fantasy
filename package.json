@@ -7,8 +7,8 @@
     "check:rosters": "node scripts/check-dynamic-rosters.mjs",
     "check:automation": "node scripts/check-week-automation.mjs",
     "check:owner": "node scripts/check-owner-controls.mjs",
-    "photos": "node scripts/build-dance-photo-assets.mjs && node scripts/build-cast-thumbnails.mjs",
-    "photos:check": "node scripts/build-dance-photo-assets.mjs --check && node scripts/build-cast-thumbnails.mjs --check",
+    "photos": "node scripts/build-dance-photo-assets.mjs",
+    "photos:check": "node scripts/build-dance-photo-assets.mjs --check && node scripts/build-people-photos.mjs --check",
     "people-photos": "node scripts/build-people-photos.mjs",
     "people-photos:check": "node scripts/build-people-photos.mjs --check"
   },

@@ -1,4 +1,4 @@
-import { db } from '../supabase-client.js?v=20261022-people-v116';
+import { db } from '../supabase-client.js?v=20261022-people-v117';
 
 document.addEventListener('DOMContentLoaded', async () => {
   const authButton = document.querySelector('#adminAuth');

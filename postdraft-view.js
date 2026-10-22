@@ -1,11 +1,11 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261022-people-v116';
-import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261022-people-v116';
-import { avatarImageStyle } from './cast-avatar-frame.js?v=20261022-people-v116';
-import { guestPhotoPath } from './week-owner-controls.js?v=20261022-people-v116';
-import { dancePhotoSource } from './dance-images.js?v=20261022-people-v116';
-import { youtubeVideoFor } from './dance-video.js?v=20261022-people-v116';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261022-people-v117';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261022-people-v117';
+import { avatarImageStyle } from './cast-avatar-frame.js?v=20261022-people-v117';
+import { guestPhotoPath } from './week-owner-controls.js?v=20261022-people-v117';
+import { dancePhotoSource } from './dance-images.js?v=20261022-people-v117';
+import { youtubeVideoFor } from './dance-video.js?v=20261022-people-v117';
 
-import { hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261022-people-v116';
+import { hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261022-people-v117';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.
@@ -18,14 +18,14 @@ export function judgePortraitFor(name, assetRoot = '', week = {}) {
   const guestPath = week.guest_judge_image_path || guestPhotoPath(week.guest_judge_name || '');
   if (judge === String(week.guest_judge_name || '').trim().toLowerCase()
     && /^Images\//.test(guestPath)) {
-    return `${assetRoot}${guestPath}?v=20261014-guests`;
+    return `${assetRoot}${castThumbnailFor(guestPath)}`;
   }
   const portraits = {
-    'carrie ann': 'Carrie Ann Inaba.webp', 'carrie ann inaba': 'Carrie Ann Inaba.webp',
-    derek: 'Derek Hough.webp', 'derek hough': 'Derek Hough.webp',
-    bruno: 'Bruno Tonioli.webp', 'bruno tonioli': 'Bruno Tonioli.webp',
+    'carrie ann': 'Carrie Ann Inaba', 'carrie ann inaba': 'Carrie Ann Inaba',
+    derek: 'Derek Hough', 'derek hough': 'Derek Hough',
+    bruno: 'Bruno Tonioli', 'bruno tonioli': 'Bruno Tonioli',
   };
-  return portraits[judge] ? `${assetRoot}Images/Cast Thumbnails/${portraits[judge]}?v=2` : '';
+  return portraits[judge] ? `${assetRoot}Images/People/${portraits[judge]}/profile.webp` : '';
 }
 export function judgeMemberFor(name, castMembers = []) {
   const sought = String(name || '').trim().toLowerCase();
@@ -186,8 +186,9 @@ export function castRosterRow({ id, name, roleDetails, roleDetailsHtml, image, p
   return `<div class="row cast-roster-row" data-cast-detail="${html(id)}" tabindex="0" role="button" aria-label="View ${html(name)} profile"><img class="player-photo" style="object-position:${imagePosition(position)}% center" src="${html(castThumbnailFor(image))}" data-original-src="${html(image)}" alt="" loading="lazy" decoding="async" width="70" height="80"><span><b>${html(name)}</b><small>${roleDetailsHtml ?? html(roleDetails)}</small></span>${editButton ? `<button data-player-id="${html(id)}">Edit</button>` : '<span class="row-chevron" aria-hidden="true">›</span>'}</div>`;
 }
 
+/** The square profile picture for a cast portrait (Images/People/<Name>/portrait.webp → profile.webp). */
 export function castThumbnailFor(image) {
-  return String(image || '').replace(/^((?:\.\.\/)?Images\/)([^/]+)\.(jpe?g|png|webp)$/i, '$1Cast Thumbnails/$2.webp?v=2');
+  return String(image || '').replace(/(Images\/People\/[^/]+\/)portrait\.webp/, '$1profile.webp');
 }
 
 function castAvatarMarkup(member, image) {

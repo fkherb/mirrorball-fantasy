@@ -1,6 +1,6 @@
-import { db } from './supabase-client.js?v=20261022-people-v116';
-import { prepareProfilePicture } from './profile-picture.js?v=20261022-people-v116';
-import { initializeAppExperience } from './app-experience.js?v=20261022-people-v116';
+import { db } from './supabase-client.js?v=20261022-people-v117';
+import { prepareProfilePicture } from './profile-picture.js?v=20261022-people-v117';
+import { initializeAppExperience } from './app-experience.js?v=20261022-people-v117';
 
 document.addEventListener('DOMContentLoaded', async () => {
   initializeAppExperience();
@@ -261,7 +261,8 @@ document.addEventListener('DOMContentLoaded', async () => {
     const grid = document.createElement('div');
     grid.className = 'account-picture-grid';
     for (const member of data || []) {
-      const path = member.image_path || `Images/${member.name.replace(/[.,'’]/g, '')}.jpg`;
+      // The square profile picture from Assets (Images/People/<Name>/profile.webp).
+      const path = (member.image_path || `Images/People/${member.name}/portrait.webp`).split('?')[0].replace(/\/portrait\.webp$/, '/profile.webp');
       const url = new URL(path.replace(/^\.\//, ''), location.href).toString();
       if (!url.startsWith('https://')) continue;
       const choice = document.createElement('button');

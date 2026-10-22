@@ -1,3 +1,4 @@
+# Dance photos only. Cast and guest photos come from Assets via prepare-people-photos.yml.
 name: Prepare photo assets
 
 on:
@@ -5,13 +6,7 @@ on:
     branches: [main]
     paths:
       - 'Images/Dances/Week */**'
-      - 'Images/*.jpg'
-      - 'Images/*.jpeg'
-      - 'Images/*.png'
-      - 'Images/*.webp'
-      - 'Images/Guests/**'
       - 'scripts/build-dance-photo-assets.mjs'
-      - 'scripts/build-cast-thumbnails.mjs'
       - 'package-lock.json'
   workflow_dispatch:
 
@@ -41,9 +36,9 @@ jobs:
       - run: npm run check:owner
       - name: Commit generated photo assets when changed
         run: |
-          git add -- Images/Dances 'Images/Cast Thumbnails' dance-photo-manifest.json cast-thumbnail-manifest.json
+          git add -- Images/Dances dance-photo-manifest.json
           if git diff --cached --quiet; then exit 0; fi
           git config user.name 'github-actions[bot]'
           git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
-          git commit -m 'Prepare optimized dance and cast photos'
+          git commit -m 'Prepare optimized dance photos'
           git push origin HEAD:main
