@@ -638,13 +638,13 @@
       "sourceSha": "91850674379088a0",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 56.78,
+          "y": 12.19,
+          "zoom": 3.83
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 13.93,
           "zoom": 1
         },
         "portrait": {
@@ -653,7 +653,7 @@
           "zoom": 1
         }
       },
-      "key": "cd1dbf5b89f62f77",
+      "key": "6d133defa375f5e7",
       "files": {
         "profile": "Images/People/Giada De Laurentiis/profile.webp",
         "card": "Images/People/Giada De Laurentiis/card.webp",
@@ -668,13 +668,13 @@
       "sourceSha": "5348bbf62a6ba8c3",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 51.17,
+          "y": 12.31,
+          "zoom": 4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 14.4,
           "zoom": 1
         },
         "portrait": {
@@ -683,7 +683,7 @@
           "zoom": 1
         }
       },
-      "key": "e18bb165aff8203a",
+      "key": "b85b9a7743ccb21e",
       "files": {
         "profile": "Images/People/Guillermo Rodriguez/profile.webp",
         "card": "Images/People/Guillermo Rodriguez/card.webp",
@@ -698,22 +698,22 @@
       "sourceSha": "27431bfe0feedc28",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 52.56,
+          "y": 11.15,
+          "zoom": 4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 13.21,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 31.82,
           "zoom": 1
         }
       },
-      "key": "8f2e1bdf63da4350",
+      "key": "1f5f8ebd4779467c",
       "files": {
         "profile": "Images/People/Harry Shum Jr./profile.webp",
         "card": "Images/People/Harry Shum Jr./card.webp",
@@ -728,9 +728,9 @@
       "sourceSha": "ef50d7742535de54",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 55.91,
+          "y": 11.44,
+          "zoom": 3.96
         },
         "card": {
           "x": 50,
@@ -739,11 +739,11 @@
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 51.18,
           "zoom": 1
         }
       },
-      "key": "79d91426b287861c",
+      "key": "f8f635f01b87ad8f",
       "files": {
         "profile": "Images/People/Jackson Olson/profile.webp",
         "card": "Images/People/Jackson Olson/card.webp",
@@ -758,9 +758,9 @@
       "sourceSha": "b164919cc57f256e",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 53.94,
+          "y": 10.69,
+          "zoom": 4
         },
         "card": {
           "x": 50,
@@ -773,7 +773,7 @@
           "zoom": 1
         }
       },
-      "key": "b13e0a928d8c7611",
+      "key": "454cb7e7e3e2cdab",
       "files": {
         "profile": "Images/People/Jenna Dewan/profile.webp",
         "card": "Images/People/Jenna Dewan/card.webp",
@@ -788,9 +788,9 @@
       "sourceSha": "dc3e052b1d044f50",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 51.11,
+          "y": 13.38,
+          "zoom": 4
         },
         "card": {
           "x": 50,
@@ -799,11 +799,11 @@
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 37.55,
           "zoom": 1
         }
       },
-      "key": "38436473d5792fa2",
+      "key": "c086e1c53e7315f7",
       "files": {
         "profile": "Images/People/Julia Stiles/profile.webp",
         "card": "Images/People/Julia Stiles/card.webp",
@@ -818,13 +818,13 @@
       "sourceSha": "d4583a4d7d2c8319",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 69.34,
+          "y": 30.03,
+          "zoom": 3.84
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 34.64,
           "zoom": 1
         },
         "portrait": {
@@ -833,7 +833,7 @@
           "zoom": 1
         }
       },
-      "key": "7aa6fdd7e24c1b51",
+      "key": "295d323c7249c81d",
       "files": {
         "profile": "Images/People/Maura Higgins/profile.webp",
         "card": "Images/People/Maura Higgins/card.webp",
@@ -848,22 +848,22 @@
       "sourceSha": "2826f590b91abc3a",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 46.45,
+          "y": 14.77,
+          "zoom": 3.4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 15.36,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 100,
           "zoom": 1
         }
       },
-      "key": "8613e0fa51fbeaf1",
+      "key": "b33111c71fba7581",
       "files": {
         "profile": "Images/People/Sarah Jane Nader/profile.webp",
         "card": "Images/People/Sarah Jane Nader/card.webp",
@@ -880,11 +880,11 @@
         "profile": {
           "x": 50,
           "y": 10,
-          "zoom": 2.2
+          "zoom": 4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 13.93,
           "zoom": 1
         },
         "portrait": {
@@ -893,7 +893,7 @@
           "zoom": 1
         }
       },
-      "key": "da070a1a55358677",
+      "key": "9717d2354b0a52db",
       "files": {
         "profile": "Images/People/Tatyana Ali/profile.webp",
         "card": "Images/People/Tatyana Ali/card.webp",
@@ -908,9 +908,9 @@
       "sourceSha": "512d6722bafa64ed",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 54.06,
+          "y": 11,
+          "zoom": 4
         },
         "card": {
           "x": 50,
@@ -919,11 +919,11 @@
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 51.18,
           "zoom": 1
         }
       },
-      "key": "8a280b493e3bdfd9",
+      "key": "4bfb7a4f6a0c3756",
       "files": {
         "profile": "Images/People/Taylor Hanson/profile.webp",
         "card": "Images/People/Taylor Hanson/card.webp",
@@ -938,22 +938,22 @@
       "sourceSha": "1615d6585c2dbd9e",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 44.11,
+          "y": 12.54,
+          "zoom": 3.29
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 14.05,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 100,
           "zoom": 1
         }
       },
-      "key": "2139a3ec4fef96e9",
+      "key": "5eb9cace0cfb2e99",
       "files": {
         "profile": "Images/People/Tyler Cameron/profile.webp",
         "card": "Images/People/Tyler Cameron/card.webp",
