@@ -8,8 +8,8 @@
       "sourceSha": "592cbf209e083ceb",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
+          "x": 54.67,
+          "y": 0,
           "zoom": 2.2
         },
         "card": {
@@ -18,12 +18,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 53.03,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "25ce145307503f21",
+      "key": "2e0494e78519364c",
       "files": {
         "profile": "Images/People/Adele Zaikman/profile.webp",
         "card": "Images/People/Adele Zaikman/card.webp",
