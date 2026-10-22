@@ -38,8 +38,8 @@
       "sourceSha": "ab4a7efb86749211",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
+          "x": 53.78,
+          "y": 6.94,
           "zoom": 2.2
         },
         "card": {
@@ -48,12 +48,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 54.37,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "50c4a5293c74dbbc",
+      "key": "b456dd592be6d859",
       "files": {
         "profile": "Images/People/Alan Bersten/profile.webp",
         "card": "Images/People/Alan Bersten/card.webp",
