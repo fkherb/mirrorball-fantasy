@@ -1568,22 +1568,22 @@
       "sourceSha": "90c7713b02e5b2c4",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 38.86,
+          "y": 34.49,
+          "zoom": 4
         },
         "card": {
-          "x": 50,
-          "y": 10,
-          "zoom": 1
+          "x": 0,
+          "y": 39.11,
+          "zoom": 1.27
         },
         "portrait": {
-          "x": 50,
-          "y": 8,
-          "zoom": 1
+          "x": 11.07,
+          "y": 73.46,
+          "zoom": 1.3
         }
       },
-      "key": "30848373966b8d7a",
+      "key": "8c19f980fc16da40",
       "files": {
         "profile": "Images/People/Robert Irwin/profile.webp",
         "card": "Images/People/Robert Irwin/card.webp",
@@ -1598,22 +1598,22 @@
       "sourceSha": "91cd8abd97a8afbe",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 42.36,
+          "y": 4.2,
+          "zoom": 2.24
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 4.14,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 17.88,
           "zoom": 1
         }
       },
-      "key": "8f8ef5e84ff73a76",
+      "key": "e27b240bc3281c9e",
       "files": {
         "profile": "Images/People/Shirley Ballas/profile.webp",
         "card": "Images/People/Shirley Ballas/card.webp",
@@ -1628,22 +1628,22 @@
       "sourceSha": "d8a6854d7caa32f6",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 64.1,
+          "y": 25.18,
+          "zoom": 3.72
         },
         "card": {
-          "x": 50,
-          "y": 10,
-          "zoom": 1
+          "x": 77.93,
+          "y": 25.78,
+          "zoom": 1.46
         },
         "portrait": {
-          "x": 50,
-          "y": 8,
-          "zoom": 1
+          "x": 79.27,
+          "y": 54.84,
+          "zoom": 1.54
         }
       },
-      "key": "78c6aa2f93c48f51",
+      "key": "96cefc1b6352c26f",
       "files": {
         "profile": "Images/People/Xochitl Gomez/profile.webp",
         "card": "Images/People/Xochitl Gomez/card.webp",
