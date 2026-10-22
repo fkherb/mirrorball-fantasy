@@ -368,9 +368,9 @@
       "sourceSha": "022aae88651f2fef",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 54.33,
+          "y": 0,
+          "zoom": 1.55
         },
         "card": {
           "x": 50,
@@ -378,12 +378,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 52.5,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "0af483320a43031d",
+      "key": "f217fb18d42091e2",
       "files": {
         "profile": "Images/People/Rylee Arnold/profile.webp",
         "card": "Images/People/Rylee Arnold/card.webp",
@@ -398,9 +398,9 @@
       "sourceSha": "437c7292c31dac02",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 50.2,
+          "y": 4.9,
+          "zoom": 1.72
         },
         "card": {
           "x": 50,
@@ -408,12 +408,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 50.62,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "328214b18a8e466b",
+      "key": "cb515a3b76211580",
       "files": {
         "profile": "Images/People/Sharna Burgess/profile.webp",
         "card": "Images/People/Sharna Burgess/card.webp",
@@ -428,9 +428,9 @@
       "sourceSha": "7eb4d3eebaba3a27",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 40.07,
+          "y": 0,
+          "zoom": 1.62
         },
         "card": {
           "x": 50,
@@ -438,12 +438,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 39.48,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "3a7f4a686e243feb",
+      "key": "a0a29d9b51310cc8",
       "files": {
         "profile": "Images/People/Val Chmerkovskiy/profile.webp",
         "card": "Images/People/Val Chmerkovskiy/card.webp",
@@ -458,9 +458,9 @@
       "sourceSha": "a801ce5fd35e5c29",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 52.85,
+          "y": 0,
+          "zoom": 1.52
         },
         "card": {
           "x": 50,
@@ -468,12 +468,12 @@
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 53.48,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "dcf94271f15a9082",
+      "key": "f54dea48f7c6f8e3",
       "files": {
         "profile": "Images/People/Witney Carson/profile.webp",
         "card": "Images/People/Witney Carson/card.webp",
@@ -490,7 +490,7 @@
         "profile": {
           "x": 50,
           "y": 10,
-          "zoom": 2.2
+          "zoom": 4
         },
         "card": {
           "x": 50,
@@ -503,7 +503,7 @@
           "zoom": 1
         }
       },
-      "key": "7f3589241a8293f4",
+      "key": "ca00731cc0e530d1",
       "files": {
         "profile": "Images/People/Amber Glenn/profile.webp",
         "card": "Images/People/Amber Glenn/card.webp",
@@ -518,13 +518,13 @@
       "sourceSha": "e0237e32eb69a5b9",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 49.52,
+          "y": 25.62,
+          "zoom": 4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 26.31,
           "zoom": 1
         },
         "portrait": {
@@ -533,7 +533,7 @@
           "zoom": 1
         }
       },
-      "key": "c97286bcffe99a81",
+      "key": "af52a08748d3ebbf",
       "files": {
         "profile": "Images/People/Ciara Miller/profile.webp",
         "card": "Images/People/Ciara Miller/card.webp",
@@ -550,7 +550,7 @@
         "profile": {
           "x": 50,
           "y": 10,
-          "zoom": 2.2
+          "zoom": 4
         },
         "card": {
           "x": 50,
@@ -563,7 +563,7 @@
           "zoom": 1
         }
       },
-      "key": "a86baf47ad80583d",
+      "key": "596e2e18c5af13e2",
       "files": {
         "profile": "Images/People/Conner Leavitt/profile.webp",
         "card": "Images/People/Conner Leavitt/card.webp",
@@ -578,13 +578,13 @@
       "sourceSha": "560fb467c442e1cd",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 54.11,
+          "y": 11.38,
+          "zoom": 4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 12.5,
           "zoom": 1
         },
         "portrait": {
@@ -593,7 +593,7 @@
           "zoom": 1
         }
       },
-      "key": "c7564424def02da9",
+      "key": "31b501534cef7d85",
       "files": {
         "profile": "Images/People/Connor Wood/profile.webp",
         "card": "Images/People/Connor Wood/card.webp",
@@ -608,13 +608,13 @@
       "sourceSha": "f46d9f4207c324d3",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 47.33,
+          "y": 10.73,
+          "zoom": 4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 13.1,
           "zoom": 1
         },
         "portrait": {
@@ -623,7 +623,7 @@
           "zoom": 1
         }
       },
-      "key": "deb28de50d0db716",
+      "key": "d35f7f246f73df15",
       "files": {
         "profile": "Images/People/Ezra Frech/profile.webp",
         "card": "Images/People/Ezra Frech/card.webp",
