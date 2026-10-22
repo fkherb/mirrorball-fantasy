@@ -1,0 +1,56 @@
+# Cast and guest photos. Add or update a person by pushing Assets/<Pros|Stars|Bonus|Guest>/<Name>/
+# (<Name>.jpg|png and <Name>.txt). This syncs the folders to the database (guests are created, cast bios
+# updated, new cast show up in the app's People & Photos to add), renders Images/People/<Name>/
+# {profile,card,portrait,full}.webp with the crops set in the app, pushes them, then records the renders.
+# Saving crops in the app starts it too: Supabase's pg_cron job "mirrorball-people-photos" sends a
+# repository_dispatch ("people-photos") within a minute.
+name: Prepare people photos
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'Assets/**'
+      - 'scripts/build-people-photos.mjs'
+  repository_dispatch:
+    types: [people-photos]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: prepare-people-photos
+  cancel-in-progress: false
+
+jobs:
+  render:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-24.04
+    env:
+      SUPABASE_URL: https://mdrrnanxqazecqviaass.supabase.co
+      DWTS_AUTOMATION_WORKER_SECRET: ${{ secrets.DWTS_AUTOMATION_WORKER_SECRET }}
+      PEOPLE_RENDERED_FILE: ${{ runner.temp }}/people-rendered.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Sync folders and render
+        run: node scripts/build-people-photos.mjs
+      - run: node scripts/build-people-photos.mjs --check
+      - name: Push rendered photos
+        run: |
+          git add -- Images/People people-photo-manifest.json
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Prepare people photos'
+          git pull --rebase origin main
+          git push origin HEAD:main
+      - name: Record renders
+        run: node scripts/build-people-photos.mjs --report

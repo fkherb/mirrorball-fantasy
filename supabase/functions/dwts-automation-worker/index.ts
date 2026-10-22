@@ -70,6 +70,15 @@ export function createHandler(config: Configuration, send: typeof fetch = fetch)
         name = 'preview_dwts_work';
         args = { p_week_number: body.week, p_mode: body.mode, p_week_tag: body.week_tag || null };
         break;
+      // People photos (prepare-people-photos workflow): sync the Assets folders, then record renders.
+      case 'people-sync':
+        if (!Array.isArray(body.people) || body.people.length > 500) return json({ error: 'Invalid people' }, 400);
+        name = 'sync_people_assets'; args = { p_people: body.people };
+        break;
+      case 'people-rendered':
+        if (!Array.isArray(body.rendered) || body.rendered.length > 500) return json({ error: 'Invalid rendered photos' }, 400);
+        name = 'record_people_photos_rendered'; args = { p_rendered: body.rendered };
+        break;
       default: return json({ error: 'Unknown action' }, 400);
     }
     try {
