@@ -31,7 +31,7 @@ jobs:
     env:
       SUPABASE_URL: https://mdrrnanxqazecqviaass.supabase.co
       DWTS_AUTOMATION_WORKER_SECRET: ${{ secrets.DWTS_AUTOMATION_WORKER_SECRET }}
-      PEOPLE_RENDERED_FILE: ${{ runner.temp }}/people-rendered.json
+      PEOPLE_RENDERED_FILE: /tmp/people-rendered.json
     steps:
       - uses: actions/checkout@v4
         with:

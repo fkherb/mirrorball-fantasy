@@ -22,7 +22,7 @@ jobs:
     env:
       SUPABASE_URL: https://mdrrnanxqazecqviaass.supabase.co
       DWTS_AUTOMATION_WORKER_SECRET: ${{ secrets.DWTS_AUTOMATION_WORKER_SECRET }}
-      PEOPLE_BIOS_FILE: ${{ runner.temp }}/people-bios.json
+      PEOPLE_BIOS_FILE: /tmp/people-bios.json
     steps:
       - uses: actions/checkout@v4
         with:
