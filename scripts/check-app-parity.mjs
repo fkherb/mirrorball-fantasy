@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { normalizeHomeLayout, homeSections, weekRecap, teamStanding, resultSignature, latestResultsWeek } from '../home-model.js';
 import { competitiveAwards, scoreLeague, sharedAppearanceRate } from '../scoring.js';
-import { configureSpoilers, observeResults, hidesResults, setHiddenResults, setSpoilerWarnings, spoilerRole } from '../spoiler-settings.js?v=20261019-app-parity-v115';
+import { configureSpoilers, observeResults, hidesResults, setHiddenResults, setSpoilerWarnings, spoilerRole } from '../spoiler-settings.js?v=20261022-people-v116';
 import { danceCard, danceDetail } from '../postdraft-view.js';
 
 assert.deepEqual(normalizeHomeLayout({ order: ['teams', 'teams', 'removed'], hidden: ['teams', 'bad'] }), {

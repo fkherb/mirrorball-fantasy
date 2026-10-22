@@ -1,11 +1,11 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261019-app-parity-v115';
-import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261019-app-parity-v115';
-import { avatarImageStyle } from './cast-avatar-frame.js?v=20261019-app-parity-v115';
-import { guestPhotoPath } from './week-owner-controls.js?v=20261019-app-parity-v115';
-import { dancePhotoSource } from './dance-images.js?v=20261019-app-parity-v115';
-import { youtubeVideoFor } from './dance-video.js?v=20261019-app-parity-v115';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261022-people-v116';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261022-people-v116';
+import { avatarImageStyle } from './cast-avatar-frame.js?v=20261022-people-v116';
+import { guestPhotoPath } from './week-owner-controls.js?v=20261022-people-v116';
+import { dancePhotoSource } from './dance-images.js?v=20261022-people-v116';
+import { youtubeVideoFor } from './dance-video.js?v=20261022-people-v116';
 
-import { hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261019-app-parity-v115';
+import { hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261022-people-v116';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.
@@ -348,8 +348,13 @@ export function castProfile({ member, image, role, teamName, fantasyPoints, judg
   const bio = String(member.bio || 'Biography details have not been added yet.').trim();
   const words = bio.split(/\s+/);
   const longBio = words.length > 85;
-  const preview = longBio ? `${words.slice(0, 65).join(' ')}…` : bio;
-  const bioMarkup = `<div class="cast-bio-body"><p class="cast-bio-preview">${html(preview)}</p>${longBio ? `<details class="cast-bio-expand"><summary><span class="bio-more-label">Continue reading</span><span class="bio-less-label">Show less</span></summary><p>${html(bio)}</p></details>` : ''}</div>`;
+  // Bios from Assets keep a blank line between paragraphs; the preview runs them together.
+  const paragraphs = (text) => String(text).split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean)
+    .map((part) => `<p>${html(part.replace(/\s*\n\s*/g, ' '))}</p>`).join('');
+  const preview = longBio ? `${words.slice(0, 65).join(' ')}…` : '';
+  const bioMarkup = longBio
+    ? `<div class="cast-bio-body"><p class="cast-bio-preview">${html(preview)}</p><details class="cast-bio-expand"><summary><span class="bio-more-label">Continue reading</span><span class="bio-less-label">Show less</span></summary>${paragraphs(bio)}</details></div>`
+    : `<div class="cast-bio-body">${paragraphs(bio)}</div>`;
   const partnerCard = partnerMember && ['Star', 'Pro', 'Eliminated Star', 'Eliminated Pro'].includes(member.role)
     ? `<div class="cast-mobile-pill" data-profile-control="partner"><button type="button" class="cast-profile-avatar-button" data-profile-reveal="partner" aria-expanded="false" aria-label="Show dance partner ${html(partnerMember.name)}">${castAvatarMarkup(partnerMember, partnerImage)}</button><button type="button" class="cast-profile-reveal-action" data-profile-detail="partner" data-partner-profile="${html(partnerMember.id)}" hidden><strong>${html(partnerMember.name)}</strong><span aria-hidden="true">›</span></button></div>` : '';
   const teamAvatarMarkup = teamAvatar ? `<img src="${html(teamAvatar)}" alt="">` : `<span class="cast-team-initial" aria-hidden="true">${html(String(teamName || 'T').charAt(0).toUpperCase())}</span>`;
@@ -364,8 +369,9 @@ export function castProfile({ member, image, role, teamName, fantasyPoints, judg
     ? `<p class="cast-partnership-name">${html(partnershipName.trim())}</p>` : '';
   const backButton = backLabel ? `<button class="profile-back-button secondary" id="profileBack" type="button" aria-label="Back to ${html(backLabel)}">← Back</button>` : '';
   const stats = `<div class="cast-profile-stats"><div><strong>${hidesResults() ? hiddenScoreMarkup() : fantasyPoints || 0}</strong><span>${html(pointsLabel)}</span></div>${showJudges ? `<div><strong>${hidesResults() ? hiddenScoreMarkup() : judgesTotal || 0}</strong><span>Judges total</span></div>` : ''}<div><strong>${hidesResults() ? hiddenScoreMarkup() : appearanceCount || 0}</strong><span>Appearances</span></div>${showWins ? `<div><strong>${Number(member.mirrorball_wins) || 0}</strong><span>Past wins</span></div>` : ''}</div>`;
+  details = [['Hometown', member.hometown], ['Born', member.birthdate], ...details].filter(([, value]) => String(value || '').trim());
   const profileDetails = details.length ? `<div class="cast-profile-details">${details.map(([label, value]) => `<div><small>${html(String(label).replaceAll('_', ' '))}</small><strong>${html(value)}</strong></div>`).join('')}</div>` : '';
-  const biography = `<section class="cast-profile-copy"><p class="eyebrow">Cast profile</p><h3>About ${html(firstName)}</h3>${bioMarkup}${member.career_highlights ? `<h3>Career highlights</h3><p>${html(member.career_highlights)}</p>` : ''}</section>`;
+  const biography = `<section class="cast-profile-copy"><p class="eyebrow">Cast profile</p><h3>About ${html(firstName)}</h3>${bioMarkup}${member.career_highlights ? `<h3>Career highlights</h3>${paragraphs(member.career_highlights)}` : ''}</section>`;
   const predictionFootnote = seasonPredictions.length || weeklyPrediction ? predictionNote : '';
   return `${backButton}<div class="cast-profile-hero"><img src="${html(image)}" style="object-position:${imagePosition(member.image_position)}% center" alt="${html(member.name)}"><div class="cast-profile-intro"><p class="eyebrow">${html(role)}</p><h2>${html(member.name)}</h2>${partnershipSubtitle}</div><div class="cast-profile-controls"><div class="cast-profile-desktop-row">${desktopTeam}${desktopPartner}${predictions.desktop}</div><div class="cast-profile-control-row"><div class="cast-profile-meta">${teamCard}${partnerCard}</div>${predictions.main}</div></div>${eliminated}</div><span class="cast-market-list-home" hidden></span>${predictions.expanded}${stats}${pointsNote ? `<p class="cast-profile-points-note">${html(pointsNote)}</p>` : ''}${biography}${profileDetails}${predictionFootnote}`;
 }

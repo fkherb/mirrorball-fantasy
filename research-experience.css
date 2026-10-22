@@ -370,7 +370,8 @@ dialog:has(.cast-profile-hero) .modal, dialog:has(.team-detail-head) .modal, dia
 .cast-bio-expand { margin-top: 14px; }
 .cast-bio-expand summary { width: fit-content; color: #62386e; font-weight: 800; cursor: pointer; }
 .cast-bio-expand summary:hover { text-decoration: underline; }
-.cast-bio-expand[open] p { margin-top: 14px; padding-top: 14px; border-top: 1px solid #e5dbe3; }
+.cast-bio-expand[open] p { margin-top: 12px; }
+.cast-bio-expand[open] p:first-of-type { margin-top: 14px; padding-top: 14px; border-top: 1px solid #e5dbe3; }
 .workspace-cast-tile .workspace-profile-button { grid-column: 1 / 3; display: grid; grid-template-columns: 48px minmax(0, 1fr); align-items: center; gap: 10px; min-width: 0; width: 100%; padding: 0; border: 0; background: transparent; box-shadow: none; color: inherit; text-align: left; }
 .workspace-cast-tile .workspace-profile-button:hover { background: transparent; color: #633d76; }
 .workspace-cast-tile .workspace-profile-button:focus-visible { outline: 2px solid #885ab8; outline-offset: 3px; border-radius: 5px; }

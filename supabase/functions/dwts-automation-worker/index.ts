@@ -79,6 +79,14 @@ export function createHandler(config: Configuration, send: typeof fetch = fetch)
         if (!Array.isArray(body.rendered) || body.rendered.length > 500) return json({ error: 'Invalid rendered photos' }, 400);
         name = 'record_people_photos_rendered'; args = { p_rendered: body.rendered };
         break;
+      // People bios (generate-people-bios workflow): requested from the app, written from Wikipedia.
+      case 'people-bio-requests':
+        name = 'pending_people_bios'; args = {};
+        break;
+      case 'people-bios-generated':
+        if (!Array.isArray(body.results) || body.results.length > 500) return json({ error: 'Invalid bio results' }, 400);
+        name = 'record_people_bios'; args = { p_results: body.results };
+        break;
       default: return json({ error: 'Unknown action' }, 400);
     }
     try {

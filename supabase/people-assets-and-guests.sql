@@ -179,3 +179,17 @@ begin
 end $$;
 
 select cron.schedule('mirrorball-people-photos', '* * * * *', $$select public.dispatch_people_photos(false)$$);
+
+-- 2026-10-22 (later): bios are never applied automatically.
+-- sync_people_assets stores each .txt in people_assets.file_bio and creates new guests by name only;
+-- apply_asset_bio (app: "Use Assets bio") copies it to the live cast member or guest;
+-- request_asset_bio (app: "Generate bio") dispatches "people-bios" so generate-people-bios.yml drafts
+-- <Name>.txt from Wikipedia; pending_people_bios / record_people_bios are its service-only endpoints.
+alter table public.people_assets add column if not exists file_bio jsonb,
+  add column if not exists bio_status text check (bio_status in ('requested','generated','failed')),
+  add column if not exists bio_message text,
+  add column if not exists bio_requested_at timestamptz;
+alter table public.guests add column if not exists career_highlights text;
+-- (Function bodies as deployed: see pg_get_functiondef for sync_people_assets, apply_asset_bio,
+--  request_asset_bio, pending_people_bios and record_people_bios.)
+revoke execute on function public.pending_people_bios(), public.record_people_bios(jsonb) from public, anon, authenticated;

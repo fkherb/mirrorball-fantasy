@@ -1,0 +1,51 @@
+# Draft bios from Wikipedia, only when asked: People & Photos → (person) → Generate bio in the app sends a
+# repository_dispatch ("people-bios"). For each requested folder that has no .txt yet, this writes
+# Assets/<Category>/<Name>/<Name>.txt, pushes it, and syncs it to the database as the folder's Assets bio.
+# Nothing goes live until "Use Assets bio" is tapped, so edit the file first if you want.
+name: Generate people bios
+
+on:
+  repository_dispatch:
+    types: [people-bios]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: generate-people-bios
+  cancel-in-progress: false
+
+jobs:
+  bios:
+    runs-on: ubuntu-24.04
+    env:
+      SUPABASE_URL: https://mdrrnanxqazecqviaass.supabase.co
+      DWTS_AUTOMATION_WORKER_SECRET: ${{ secrets.DWTS_AUTOMATION_WORKER_SECRET }}
+      PEOPLE_BIOS_FILE: ${{ runner.temp }}/people-bios.json
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Write requested bios
+        run: node scripts/generate-people-bios.mjs
+      - name: Push bios
+        run: |
+          git add -- Assets
+          if git diff --cached --quiet; then exit 0; fi
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git commit -m 'Draft people bios from Wikipedia'
+          git pull --rebase origin main
+          git push origin HEAD:main
+      # A push made with GITHUB_TOKEN doesn't start other workflows, so sync the new files here.
+      - name: Sync Assets bios
+        run: node scripts/build-people-photos.mjs --sync-only
+      - name: Record results
+        if: always()
+        run: node scripts/generate-people-bios.mjs --report

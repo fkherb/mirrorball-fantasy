@@ -1,4 +1,4 @@
-import { resultSignature, latestResultsWeek } from './home-model.js?v=20261019-app-parity-v115';
+import { resultSignature, latestResultsWeek } from './home-model.js?v=20261022-people-v116';
 
 let state = { enabled: true, hiddenWeek: null, seen: null };
 let accountKey = null;

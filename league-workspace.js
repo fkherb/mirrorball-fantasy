@@ -1,14 +1,14 @@
-import { db } from './supabase-client.js?v=20261019-app-parity-v115';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261019-app-parity-v115';
-import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261019-app-parity-v115';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261019-app-parity-v115';
-import { loadMarketPredictions } from './market-predictions.js?v=20261019-app-parity-v115';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261019-app-parity-v115';
-import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261019-app-parity-v115';
-import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261019-app-parity-v115';
-import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261019-app-parity-v115';
-import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261019-app-parity-v115';
-import { observeResults, hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261019-app-parity-v115';
+import { db } from './supabase-client.js?v=20261022-people-v116';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261022-people-v116';
+import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261022-people-v116';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261022-people-v116';
+import { loadMarketPredictions } from './market-predictions.js?v=20261022-people-v116';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261022-people-v116';
+import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261022-people-v116';
+import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261022-people-v116';
+import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261022-people-v116';
+import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261022-people-v116';
+import { observeResults, hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261022-people-v116';
 
 const $ = (selector) => document.querySelector(selector);
 const safe = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({

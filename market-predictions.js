@@ -1,4 +1,4 @@
-import { db } from './supabase-client.js?v=20261019-app-parity-v115';
+import { db } from './supabase-client.js?v=20261022-people-v116';
 
 let cached = [];
 let loadedAt = 0;

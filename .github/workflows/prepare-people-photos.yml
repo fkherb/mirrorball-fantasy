@@ -1,6 +1,7 @@
 # Cast and guest photos. Add or update a person by pushing Assets/<Pros|Stars|Bonus|Guest>/<Name>/
-# (<Name>.jpg|png and <Name>.txt). This syncs the folders to the database (guests are created, cast bios
-# updated, new cast show up in the app's People & Photos to add), renders Images/People/<Name>/
+# (<Name>.jpg|png and <Name>.txt). This syncs the folders to the database (new guests are created by name,
+# new cast show up in the app's People & Photos to add, and each .txt is stored as the folder's Assets bio;
+# live bios only change from the app's "Use Assets bio"), renders Images/People/<Name>/
 # {profile,card,portrait,full}.webp with the crops set in the app, pushes them, then records the renders.
 # Saving crops in the app starts it too: Supabase's pg_cron job "mirrorball-people-photos" sends a
 # repository_dispatch ("people-photos") within a minute.

@@ -1,6 +1,6 @@
-import { db } from './supabase-client.js?v=20261019-app-parity-v115';
-import { prepareProfilePicture } from './profile-picture.js?v=20261019-app-parity-v115';
-import { initializeAppExperience } from './app-experience.js?v=20261019-app-parity-v115';
+import { db } from './supabase-client.js?v=20261022-people-v116';
+import { prepareProfilePicture } from './profile-picture.js?v=20261022-people-v116';
+import { initializeAppExperience } from './app-experience.js?v=20261022-people-v116';
 
 document.addEventListener('DOMContentLoaded', async () => {
   initializeAppExperience();

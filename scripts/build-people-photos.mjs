@@ -1,15 +1,17 @@
 // Cast and guest photos from the Assets folders.
 //
 //   Assets/<Pros|Stars|Bonus|Guest>/<Name>/<Name>.jpg|png   the source photo (-alt photos are ignored)
-//   Assets/<Pros|Stars|Bonus|Guest>/<Name>/<Name>.txt       bio, then PERSONAL INFORMATION (HOMETOWN, BIRTHDATE)
+//   Assets/<Pros|Stars|Bonus|Guest>/<Name>/<Name>.txt       bio, CAREER HIGHLIGHTS, PERSONAL INFORMATION (HOMETOWN, BIRTHDATE)
 //
-// `node scripts/build-people-photos.mjs` syncs every folder to the database (people_assets, guests,
-// cast bios) when DWTS_AUTOMATION_WORKER_SECRET is set, then renders each person's photos with the crops
+// `node scripts/build-people-photos.mjs` syncs every folder to the database (people_assets; new guests by
+// name) when DWTS_AUTOMATION_WORKER_SECRET is set. Bios are only read into people_assets.file_bio: the live
+// bio changes when you tap "Use Assets bio" in the app. Then it renders each person's photos with the crops
 // set in the app (defaults until then):
 //   Images/People/<Name>/profile.webp   600×600   avatars, chips, rows
 //   Images/People/<Name>/card.webp      1600×640  wide cards and banners
 //   Images/People/<Name>/portrait.webp  960×1200  profile pages, Stories
 //   Images/People/<Name>/full.webp      ≤2000px   the whole photo
+// `--sync-only` syncs without rendering (used after generate-people-bios.mjs writes new bios).
 // `--report` (after the files are pushed) records the renders so the app and site load them (?v=photo_version).
 // `--check` verifies every manifest entry's files exist.
 import { createHash } from 'node:crypto';
@@ -44,14 +46,19 @@ async function api(action, body) {
   return data;
 }
 
-/** Bio text: the paragraphs before CAREER HIGHLIGHTS / PERSONAL INFORMATION, unwrapped. */
+const unwrap = (text) => text.split(/\n\s*\n/).map((paragraph) => paragraph.split('\n').map((line) => line.trim()).join(' ').trim())
+  .filter(Boolean).join('\n\n');
+
+/** A <Name>.txt: bio paragraphs (unwrapped, blank line between paragraphs), CAREER HIGHLIGHTS, and
+ *  PERSONAL INFORMATION with HOMETOWN: and BIRTHDATE: lines. */
 export function parseBio(text) {
   const clean = text.replace(/\r/g, '');
-  const [body] = clean.split(/^\s*(?:CAREER HIGHLIGHTS|PERSONAL INFORMATION)\s*$/m);
-  const bio = body.split(/\n\s*\n/).map((paragraph) => paragraph.split('\n').map((line) => line.trim()).join(' ').trim())
-    .filter(Boolean).join('\n\n');
-  const field = (label) => clean.match(new RegExp(`^\\s*${label}:[ \\t]*(.*)$`, 'mi'))?.[1].trim() || '';
-  return { bio, hometown: field('HOMETOWN'), birthdate: field('BIRTHDATE') };
+  const sections = clean.split(/^[ \t]*(CAREER HIGHLIGHTS|PERSONAL INFORMATION)[ \t]*$/m);
+  const bio = unwrap(sections[0]);
+  const highlightsAt = sections.indexOf('CAREER HIGHLIGHTS');
+  const career_highlights = highlightsAt >= 0 ? unwrap(sections[highlightsAt + 1] || '') : '';
+  const field = (label) => clean.match(new RegExp(`^[ \\t]*${label}:[ \\t]*(.*)$`, 'mi'))?.[1].trim() || '';
+  return { bio, career_highlights, hometown: field('HOMETOWN'), birthdate: field('BIRTHDATE') };
 }
 
 /** The crop rectangle (in source pixels) a PhotoFrame {x, y, zoom} shows in a width×height box.
@@ -92,7 +99,8 @@ async function scanFolders() {
       const stem = name.replace(/\.+$/, '');
       const photo = files.find((file) => /\.(jpe?g|png)$/i.test(file) && file.replace(/\.[^.]+$/, '').replace(/\.+$/, '') === stem);
       const textFile = files.find((file) => file.toLowerCase() === `${name.toLowerCase()}.txt`) || files.find((file) => /\.txt$/i.test(file));
-      const info = textFile ? parseBio(await readFile(path.join(folderPath, textFile), 'utf8')) : { bio: '', hometown: '', birthdate: '' };
+      const info = textFile ? { has_bio: true, ...parseBio(await readFile(path.join(folderPath, textFile), 'utf8')) }
+        : { has_bio: false, bio: '', career_highlights: '', hometown: '', birthdate: '' };
       const entry = { folder: `Assets/${category}/${name}`, category, name, ...info, source_photo: '', source_sha: '', width: null, height: null };
       if (photo) {
         const bytes = await readFile(path.join(folderPath, photo));
@@ -115,7 +123,9 @@ async function build() {
   const previousByFolder = new Map(previous.entries.map((entry) => [entry.folder, entry]));
   let database = null;
   if (apiUrl && secret) database = new Map((await api('people-sync', { people })).map((row) => [row.folder, row]));
+  else if (process.argv.includes('--sync-only')) throw new Error('Set SUPABASE_URL and DWTS_AUTOMATION_WORKER_SECRET to sync.');
   else console.log('No DWTS_AUTOMATION_WORKER_SECRET: rendering with the crops already in the manifest.');
+  if (process.argv.includes('--sync-only')) { console.log(`Synced ${people.length} folders.`); return; }
 
   const entries = [], rendered = [];
   let count = 0;
