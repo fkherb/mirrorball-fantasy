@@ -193,3 +193,7 @@ alter table public.guests add column if not exists career_highlights text;
 -- (Function bodies as deployed: see pg_get_functiondef for sync_people_assets, apply_asset_bio,
 --  request_asset_bio, pending_people_bios and record_people_bios.)
 revoke execute on function public.pending_people_bios(), public.record_people_bios(jsonb) from public, anon, authenticated;
+
+-- The worker calls these with the service role, which needs an explicit grant once public is revoked.
+grant execute on function public.sync_people_assets(jsonb), public.record_people_photos_rendered(jsonb),
+  public.pending_people_bios(), public.record_people_bios(jsonb) to service_role;
