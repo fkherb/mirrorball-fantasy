@@ -1268,13 +1268,13 @@
       "sourceSha": "2f5b3c9895ad4e1b",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 63.61,
+          "y": 9.81,
+          "zoom": 2.67
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 7.26,
           "zoom": 1
         },
         "portrait": {
@@ -1283,7 +1283,7 @@
           "zoom": 1
         }
       },
-      "key": "3423f3cc7497b9a1",
+      "key": "c1514ef66c63abcd",
       "files": {
         "profile": "Images/People/Onye Stevenson/profile.webp",
         "card": "Images/People/Onye Stevenson/card.webp",
@@ -1298,22 +1298,22 @@
       "sourceSha": "7fbe119c859d13ed",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 71.53,
+          "y": 21.08,
+          "zoom": 3.79
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 44.54,
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 71.45,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "6966bf546b703096",
+      "key": "04524f4901311c35",
       "files": {
         "profile": "Images/People/Selena Hamilton/profile.webp",
         "card": "Images/People/Selena Hamilton/card.webp",
@@ -1328,22 +1328,22 @@
       "sourceSha": "c75d4ff6b81d5e3d",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 54.44,
+          "y": 19.56,
+          "zoom": 2.82
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 20.4,
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
-          "y": 8,
-          "zoom": 1
+          "x": 51.93,
+          "y": 32.33,
+          "zoom": 1.39
         }
       },
-      "key": "5729222ac0ce8ce8",
+      "key": "332b881c71d6711e",
       "files": {
         "profile": "Images/People/Danny Amendola/profile.webp",
         "card": "Images/People/Danny Amendola/card.webp",
@@ -1358,13 +1358,13 @@
       "sourceSha": "781de2d5026f992a",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
+          "x": 39.17,
+          "y": 28.38,
           "zoom": 2.2
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 32.61,
           "zoom": 1
         },
         "portrait": {
@@ -1373,7 +1373,7 @@
           "zoom": 1
         }
       },
-      "key": "4861e399e3d527eb",
+      "key": "c68439f12b501642",
       "files": {
         "profile": "Images/People/DeMarcus Ware/profile.webp",
         "card": "Images/People/DeMarcus Ware/card.webp",
@@ -1388,22 +1388,22 @@
       "sourceSha": "580c4870058ba949",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 47.63,
+          "y": 31.78,
+          "zoom": 3.22
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 33.22,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 100,
           "zoom": 1
         }
       },
-      "key": "ed12809da5cafc9a",
+      "key": "8d2bb306a3c749f7",
       "files": {
         "profile": "Images/People/Donald Driver/profile.webp",
         "card": "Images/People/Donald Driver/card.webp",
@@ -1418,22 +1418,22 @@
       "sourceSha": "a6ccbddab628acbc",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 48.1,
+          "y": 27.81,
+          "zoom": 4
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 47.25,
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
-          "y": 8,
-          "zoom": 1
+          "x": 50.26,
+          "y": 100,
+          "zoom": 1.12
         }
       },
-      "key": "baa023c22c6005cb",
+      "key": "1b3e2628ccbdcabb",
       "files": {
         "profile": "Images/People/Emmitt Smith/profile.webp",
         "card": "Images/People/Emmitt Smith/card.webp",
@@ -1448,22 +1448,22 @@
       "sourceSha": "db7d2fc1724ef4ec",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 52.25,
+          "y": 24.06,
+          "zoom": 2.51
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 27.77,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 59.44,
           "zoom": 1
         }
       },
-      "key": "aabf1f82a517bada",
+      "key": "8b317b259a25611c",
       "files": {
         "profile": "Images/People/Joe Buck/profile.webp",
         "card": "Images/People/Joe Buck/card.webp",
@@ -1479,21 +1479,21 @@
       "crops": {
         "profile": {
           "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "y": 13.07,
+          "zoom": 1
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 44.92,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 41.41,
           "zoom": 1
         }
       },
-      "key": "8dead626855a215e",
+      "key": "78014b63e44c366e",
       "files": {
         "profile": "Images/People/Joey Graziadei/profile.webp",
         "card": "Images/People/Joey Graziadei/card.webp",
@@ -1508,22 +1508,22 @@
       "sourceSha": "2769e98f59c0bf29",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 53.02,
+          "y": 9.2,
+          "zoom": 1.77
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 17.98,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 30.69,
           "zoom": 1
         }
       },
-      "key": "a459629f5eb5d582",
+      "key": "3b4b1f3c95d40cb0",
       "files": {
         "profile": "Images/People/Kym Johnson/profile.webp",
         "card": "Images/People/Kym Johnson/card.webp",
@@ -1538,22 +1538,22 @@
       "sourceSha": "b9502403b696518f",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 43.67,
+          "y": 29.71,
+          "zoom": 3.06
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 49.34,
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
-          "y": 8,
-          "zoom": 1
+          "x": 40.26,
+          "y": 100,
+          "zoom": 1.22
         }
       },
-      "key": "142b132615d127f3",
+      "key": "932633bfca712684",
       "files": {
         "profile": "Images/People/Lochlan Howard/profile.webp",
         "card": "Images/People/Lochlan Howard/card.webp",
