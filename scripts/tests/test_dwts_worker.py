@@ -132,6 +132,121 @@ class WorkerTests(unittest.TestCase):
         self.assertFalse(any(c['found'] for c in pending['couples']))
 
 
+    # Late-season weeks (fixtures/late-season-week.html follows the season 32–34 layouts).
+    LATE = {
+        'week_couples': [
+            {'partnership_id': 'p-amber', 'star_name': 'Amber Glenn', 'pro_name': 'Pasha Pashkov'},
+            {'partnership_id': 'p-connor', 'star_name': 'Connor Wood', 'pro_name': 'Rylee Arnold'},
+            {'partnership_id': 'p-ezra', 'star_name': 'Ezra Frech', 'pro_name': 'Daniella Karagach'}],
+        'week_dances': [
+            {'dance_id': f'{who}-{n}', 'star_name': star, 'pro_name': pro, 'round': n}
+            for n in (1, 2) for who, star, pro in (('amber', 'Amber Glenn', 'Pasha Pashkov'),
+                ('connor', 'Connor Wood', 'Rylee Arnold'), ('ezra', 'Ezra Frech', 'Daniella Karagach'))],
+        'week_specials': [], 'formats': ['second_dance', 'team_dance', 'dance_off', 'marathon']}
+
+    def late_result(self, mode, specials=None):
+        html = (Path(__file__).parent / 'fixtures/late-season-week.html').read_text()
+        task = {'mode': mode, 'week_tag': '#Week_7:_Test_Night', 'targets': [], **self.LATE}
+        if specials is not None:
+            task['week_specials'] = specials
+        with patch.object(self.w.wiki, 'fetch_page', return_value=(html, 1)):
+            return self.w.gather(task)
+
+    def test_late_season_rounds_map_to_each_dance(self):
+        result = self.late_result('live-show')
+        by = {c['star_name']: c['by_dance'] for c in result['couples']}
+        self.assertEqual(by['Amber Glenn']['amber-1']['total'], 32)
+        self.assertEqual(by['Amber Glenn']['amber-2']['total'], 36)
+        self.assertEqual(by['Connor Wood']['connor-2']['dance'], 'Salsa')
+        # Ezra's second dance isn't on Wikipedia yet: his one row is dance 1, dance 2 stays empty.
+        self.assertEqual(by['Ezra Frech']['ezra-1']['total'], 38)
+        self.assertIsNone(by['Ezra Frech']['ezra-2'])
+        self.assertEqual(result['errors'], [])
+        # Team, marathon and dance-off rows are never a couple's performance.
+        self.assertEqual([len(c['performances']) for c in result['couples']], [2, 2, 1])
+
+    def test_late_season_post_show_uses_the_couples_result_for_every_round(self):
+        result = self.late_result('post-show')
+        by = {c['star_name']: c['by_dance'] for c in result['couples']}
+        self.assertTrue(by['Connor Wood']['connor-1']['eliminated'])
+        self.assertTrue(by['Connor Wood']['connor-2']['eliminated'])
+        self.assertFalse(by['Amber Glenn']['amber-2']['eliminated'])
+
+    def test_late_season_specials(self):
+        result = self.late_result('live-show')
+        team, match, marathon = result['specials']
+        self.assertEqual((team['kind'], team['team_name'], team['dance'], team['total']), ('team', 'Team Roar', 'Freestyle', 37))
+        # Julianne Hough (not a couple) is in the Couple cell and is ignored.
+        self.assertEqual([c['partnership_id'] for c in team['couples']], ['p-amber', 'p-connor', 'p-ezra'])
+        self.assertEqual((match['bonus_kind'], match['dance'], match['winner']), ('dance_off', 'Cha-cha-cha', 'p-amber'))
+        self.assertEqual({c['partnership_id']: c['points'] for c in marathon['couples']},
+                         {'p-amber': 3, 'p-connor': 1, 'p-ezra': 2})
+        self.assertEqual(marathon['name'], 'Hustle & Lindy Hop Marathon')
+        self.assertTrue(all(s['dance_id'] is None for s in result['specials']))
+        # Existing dances are matched by team name, by the match's couples, and the week's one marathon.
+        existing = [
+            {'dance_id': 'team-1', 'kind': 'team', 'team_name': 'Roar', 'couples': []},
+            {'dance_id': 'off-1', 'kind': 'bonus', 'bonus_kind': 'dance_off', 'couples': ['p-connor', 'p-amber']},
+            {'dance_id': 'off-2', 'kind': 'bonus', 'bonus_kind': 'dance_off', 'couples': ['p-ezra', 'p-amber']},
+            {'dance_id': 'mara-1', 'kind': 'bonus', 'bonus_kind': 'marathon', 'couples': []}]
+        matched = self.late_result('live-show', existing)
+        self.assertEqual([s['dance_id'] for s in matched['specials']], ['team-1', 'off-1', 'mara-1'])
+
+    def test_late_season_rounds_with_instant_and_freestyle(self):
+        wiki = self.w.wiki
+        dances = [{'dance_id': 'r1', 'star_name': 'A B', 'pro_name': 'C D', 'round': 1, 'round_label': "Judges' Pick"},
+                  {'dance_id': 'r2', 'star_name': 'A B', 'pro_name': 'C D', 'round': 2, 'round_label': 'Instant Dance'},
+                  {'dance_id': 'r3', 'star_name': 'A B', 'pro_name': 'C D', 'round': 3, 'round_label': 'Freestyle'}]
+        def mapped(perfs, mode='pre-show', known=None):
+            rows = [dict(d, **(known or {}).get(d['dance_id'], {})) for d in dances]
+            result = {'mode': mode, 'couples': [{'star_name': 'A B', 'pro_name': 'C D', 'found': True, 'performances': perfs}]}
+            wiki.map_rounds(result, rows)
+            return {k: v and v['dance'] for k, v in result['couples'][0]['by_dance'].items()}, result['errors']
+        # Before the show: the announced dances only; the instant round waits for its row.
+        self.assertEqual(mapped([{'dance': 'Jive'}, {'dance': 'Freestyle'}])[0], {'r1': 'Jive', 'r2': None, 'r3': 'Freestyle'})
+        # On the night: three rows in order.
+        self.assertEqual(mapped([{'dance': 'Jive'}, {'dance': 'Samba'}, {'dance': 'Freestyle'}])[0],
+                         {'r1': 'Jive', 'r2': 'Samba', 'r3': 'Freestyle'})
+        # A style already saved on a round wins over row order.
+        self.assertEqual(mapped([{'dance': 'Samba'}, {'dance': 'Jive'}], known={'r1': {'dance_type': 'Jive'}})[0],
+                         {'r1': 'Jive', 'r2': None, 'r3': 'Samba'})
+        # More rows than dances: nothing is guessed.
+        result, errors = mapped([{'dance': 'Jive'}] * 4)
+        self.assertEqual(result, {'r1': None, 'r2': None, 'r3': None})
+        self.assertEqual(len(errors), 3)
+
+    def test_season_32_to_34_layouts(self):
+        wiki = self.w.wiki
+        html = '''<h2 id="Weekly_scores">Weekly scores</h2><h3 id="Week_9:_Test">Week 9: Test</h3>
+            <table><tr><th>Couple</th><th>Scores</th><th>Dance</th><th>Music</th><th>Result</th></tr>
+            <tr><td>Robert &amp; Witney</td><td>40 (10, 10, 10, 10)</td><td>Foxtrot</td><td>"Footprints" — Leona Lewis</td><td>Safe</td></tr>
+            <tr><td>Alfonso Ribeiro Robert &amp; Witney Alix &amp; Val</td><td>38 (9, 10, 10, 9)</td><td>Freestyle (Team Kool)</td>
+                <td colspan="2">"Celebration" — Kool &amp; the Gang</td></tr></table>
+            <table><tr><th>Couple</th><th>Dance</th><th>Music</th><th>Result</th></tr>
+            <tr><td>Robert &amp; Xochitl Gomez (Season 32 winner)</td><td rowspan="2">Jive Relay</td><td rowspan="2">"Dance with Me Tonight" — Olly Murs</td><td>Winners</td></tr>
+            <tr><td>Alix &amp; Joey Graziadei (Season 33 winner)</td><td>Losers</td></tr></table>'''
+        couples = {'Robert Irwin': 'Witney Carson', 'Alix Earle': 'Val Chmerkovskiy'}
+        result = wiki.parse_information(html, 'pre-show', couples, '#Week_9:_Test')
+        self.assertEqual([len(c['performances']) for c in result['couples']], [1, 0])
+        self.assertEqual(result['teams'][0]['team_name'], 'Team Kool')
+        self.assertEqual(len(result['teams'][0]['couples']), 2)
+        # Relay partners are past winners, so the star's first name finds the couple.
+        match = result['matches'][0]
+        self.assertEqual((match['kind'], match['dance']), ('relay', 'Jive'))
+        self.assertEqual([(c['star_name'], c['result']) for c in match['couples']],
+                         [('Robert Irwin', 'winner'), ('Alix Earle', 'loser')])
+
+    def test_ordinary_weeks_send_no_round_mapping(self):
+        task = {'mode': 'live-show', 'week_tag': '#Week_4:_Test',
+                'targets': [{'dance_id': 'd', 'star_name': 'Amber Glenn', 'pro_name': 'Pasha Pashkov'}]}
+        html = '''<h2 id="Weekly_scores">Weekly scores</h2><h3 id="Week_4:_Test">Week 4: Test</h3>
+            <table><tr><th>Couple</th><th>Scores</th></tr><tr><td>Amber &amp; Pasha</td><td>24 (8, 8, 8)</td></tr></table>'''
+        with patch.object(self.w.wiki, 'fetch_page', return_value=(html, 1)):
+            result = self.w.gather(task)
+        self.assertNotIn('by_dance', result['couples'][0])
+        self.assertNotIn('specials', result)
+
+
     def test_until_idle_exits_when_nothing_is_due_soon(self):
         far = '2099-01-01T00:00:00+00:00'
         with patch.object(self.w, 'api', return_value={'run_id': None, 'next_run_at': far}) as api, \

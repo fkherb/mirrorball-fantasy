@@ -353,8 +353,86 @@ def elimination_information(raw):
     return {"eliminated": eliminated}
 
 
+TEAM_DANCE = re.compile(r"\(\s*team\s+([^)]+?)\s*\)", re.I)
+PAIR_IN_TEXT = re.compile(r"([^\W\d_]+(?:[-’'][^\W\d_]+)*)\s*(?:&|\band\b)\s*([^\W\d_]+(?:[-’'][^\W\d_]+)*)", re.I)
+
+
+def special_kind(dance):
+    """team / marathon / relay for a late-season row's Dance text, else None."""
+    text = normalized(dance or "")
+    if TEAM_DANCE.search(dance or ""):
+        return "team"
+    if "marathon" in text:
+        return "marathon"
+    if re.search(r"\brelay\b", text):
+        return "relay"
+    return None
+
+
+def match_result(raw):
+    text = normalized(raw or "")
+    if re.search(r"\bwinners?\b|\bwon\b", text):
+        return "winner"
+    if re.search(r"\blosers?\b|\blost\b", text):
+        return "loser"
+    return None
+
+
+def couple_name(record):
+    return {"star_name": record["star_name"], "pro_name": record["pro_name"]}
+
+
+class CoupleIndex:
+    """Known couples by both first names, and by the star's first name when that is unique
+    (relay rows can pair a star with a past winner instead of their pro)."""
+    def __init__(self, records):
+        self.by_pair = {(first_name(r["star_name"]), first_name(r["pro_name"])): r for r in records}
+        stars = {}
+        for record in records:
+            stars.setdefault(first_name(record["star_name"]), []).append(record)
+        self.by_star = {name: found[0] for name, found in stars.items() if len(found) == 1}
+
+    def strict(self, label):
+        return self.by_pair.get(pair_key(label)) if label else None
+
+    def loose(self, label):
+        if not label:
+            return None
+        found = self.strict(label)
+        if found:
+            return found
+        key = pair_key(label)
+        return self.by_star.get(key[0]) if key else None
+
+    def all_in(self, text):
+        """Every known couple written as "Star & Pro" inside a team's Couple cell, in order."""
+        found = []
+        for star, pro in PAIR_IN_TEXT.findall(normalized(text or "")):
+            record = self.by_pair.get((first_name(star), first_name(pro)))
+            if record and record not in found:
+                found.append(record)
+        return found
+
+
+def table_header(grid):
+    for i, row in enumerate(grid):
+        columns = {}
+        for j, cell in enumerate(row):
+            kind = column_type(cell)
+            if kind:
+                columns.setdefault(kind, []).append(j)
+        if "couple" in columns and len(columns) >= 2:
+            return i, columns
+    return None, {}
+
+
 def parse_information(html, mode, couples=None, week_tag=None, page_url=DEFAULT_PAGE, revision_id=None):
-    """Parse supplied HTML into a JSON-serializable dict (also useful for tests)."""
+    """Parse supplied HTML into a JSON-serializable dict (also useful for tests).
+
+    Late-season weeks: a couple's rows are its performances in table order (round 1, 2, 3).
+    Team dances ("Freestyle (Team Roar)"), marathon rows and the separate dance-off / relay
+    table (no Scores column, Winners/Losers) are reported in teams / marathons / matches and
+    never as a couple's performance."""
     if mode not in MODES:
         raise WikiError(f"Unsupported mode: {mode}")
     if mode != "get-weeks" or couples is not None:
@@ -375,47 +453,96 @@ def parse_information(html, mode, couples=None, week_tag=None, page_url=DEFAULT_
     week = selected[0]
     result.update({"week": week["week"], "week_tag": week["week_tag"], "source_url": week["url"]})
     records = [{**couple, "found": False, "performances": []} for couple in couples]
-    lookup = {(first_name(c["star_name"]), first_name(c["pro_name"])): c for c in records}
+    index = CoupleIndex(records)
     required = {"pre-show": {"couple", "dance", "music"},
                 "live-show": {"couple", "scores"}, "post-show": {"couple", "result"}}[mode]
     recognized = 0
     warnings = []
+    teams, marathons, matches = [], {}, []
+    tables = []
     for table_index, table in enumerate(n for n in week["nodes"] if n.tag == "table" and n.ancestor("table") is None):
         grid = table_grid(table)
-        header_index, columns = None, {}
-        for i, row in enumerate(grid):
-            candidate = {}
-            for j, cell in enumerate(row):
-                kind = column_type(cell)
-                if kind:
-                    candidate.setdefault(kind, []).append(j)
-            if required <= candidate.keys():
-                header_index, columns = i, candidate
-                break
-        if header_index is None:
+        header_index, columns = table_header(grid)
+        if header_index is not None:
+            tables.append((table_index, grid, header_index, columns))
+    any_scores = any("scores" in columns for _, _, _, columns in tables)
+
+    def is_bonus_table(grid, header_index, columns):
+        if "scores" in columns or "result" not in columns:
+            return False
+        rows = grid[header_index + 1:]
+        if any(match_result(field_value(row, columns, "result")) for row in rows):
+            return True
+        if any(special_kind(field_value(row, columns, "dance")) == "relay" for row in rows):
+            return True
+        return any_scores
+
+    for table_index, grid, header_index, columns in tables:
+        if is_bonus_table(grid, header_index, columns):
+            # Dance-offs and relays: consecutive rows sharing a dance and song are one match.
+            for row_index, row in enumerate(grid[header_index + 1:], start=header_index + 1):
+                record = index.loose(field_value(row, columns, "couple"))
+                if record is None:
+                    continue
+                dance = field_value(row, columns, "dance")
+                music = field_value(row, columns, "music")
+                current = matches[-1] if matches else None
+                if (current is None or current["table_index"] != table_index or current["_dance"] != dance
+                        or current["_music"] != music or len(current["couples"]) >= 2):
+                    style = re.sub(r"\s*\brelay\b\s*", " ", dance or "", flags=re.I).strip() or None
+                    current = {"kind": "relay" if special_kind(dance) == "relay" else "dance_off",
+                               "dance": style, **music_information(music), "couples": [],
+                               "table_index": table_index, "row_index": row_index, "_dance": dance, "_music": music}
+                    matches.append(current)
+                current["couples"].append({**couple_name(record),
+                                           "result": match_result(field_value(row, columns, "result"))})
             continue
-        recognized += 1
-        table_pairs = {}
+        main_rows = False
         for row_index, row in enumerate(grid[header_index + 1:], start=header_index + 1):
+            dance = field_value(row, columns, "dance")
+            kind = special_kind(dance)
             label = field_value(row, columns, "couple")
-            record = lookup.get(pair_key(label)) if label else None
+            if kind == "team":
+                name = clean(TEAM_DANCE.search(dance).group(1))
+                style = clean(TEAM_DANCE.sub("", dance)) or None
+                score = score_information(field_value(row, columns, "scores"))
+                team = {"team_name": name if normalized(name).startswith("team") else "Team " + name,
+                        "dance": style, **music_information(field_value(row, columns, "music")),
+                        "scores": score["scores"], "total": score["total"], "scores_raw": score["scores_raw"],
+                        "couples": [couple_name(r) for r in index.all_in(label)],
+                        "table_index": table_index, "row_index": row_index}
+                if score.get("warning") and mode == "live-show":
+                    warnings.append(f"{team['team_name']}: {score['warning']}")
+                if not any(t["team_name"] == team["team_name"] for t in teams):
+                    teams.append(team)
+                continue
+            if kind == "marathon":
+                record = index.loose(label)
+                marathon = marathons.setdefault(normalized(dance), {
+                    "title": dance, **music_information(field_value(row, columns, "music")), "couples": [],
+                    "table_index": table_index, "row_index": row_index})
+                raw = field_value(row, columns, "scores")
+                points = int(raw) if raw and re.fullmatch(r"\d{1,2}", raw) else None
+                if record and not any(c["star_name"] == record["star_name"] for c in marathon["couples"]):
+                    marathon["couples"].append({**couple_name(record), "points": points})
+                continue
+            if not required <= columns.keys():
+                continue
+            main_rows = True
+            record = index.strict(label)
             if record is None:
                 continue
-            # Abbreviated last names do not change a first-name match, but two
-            # different labels for that same pair in one table are ambiguous.
-            key = pair_key(label)
-            if key in table_pairs and table_pairs[key] != label:
-                raise WikiError(f"Ambiguous Wikipedia rows for first-name pair {key}.")
-            table_pairs[key] = label
             data = {}
             if mode == "pre-show":
-                data["dance"] = field_value(row, columns, "dance")
+                data["dance"] = dance
                 data.update(music_information(field_value(row, columns, "music")))
                 # The table's row order is the running order; the importer orders dances by it.
                 data["table_index"] = table_index
                 data["row_index"] = row_index
             elif mode == "live-show":
                 data.update(score_information(field_value(row, columns, "scores")))
+                data["dance"] = dance
+                data["song"] = music_information(field_value(row, columns, "music"))["song"] if "music" in columns else None
                 data["table_index"] = table_index
                 data["row_index"] = row_index
                 warning = data.pop("warning", None)
@@ -425,6 +552,8 @@ def parse_information(html, mode, couples=None, week_tag=None, page_url=DEFAULT_
                 data.update(elimination_information(field_value(row, columns, "result")))
             record["found"] = True
             record["performances"].append(data)
+        if main_rows or required <= columns.keys():
+            recognized += 1
     # No result column at all, but the week's text says nobody went home: every couple is safe.
     if mode == "post-show" and not recognized:
         section_text = normalized(clean(" ".join(node.text() for node in week["nodes"] if node.tag in {"p", "div", "ul", "dl"})))
@@ -434,10 +563,126 @@ def parse_information(html, mode, couples=None, week_tag=None, page_url=DEFAULT_
                 record["found"] = True
                 record["performances"] = [{"eliminated": False}]
             recognized = 1
+    for match in matches:
+        match.pop("_dance", None)
+        match.pop("_music", None)
     result["couples"] = records
+    result["teams"] = teams
+    result["matches"] = matches
+    result["marathons"] = list(marathons.values())
     result["warnings"] = warnings
     if not recognized:
         result["warnings"].append("No table with the required headings is available in this week section.")
+    return result
+
+
+def _letters(value):
+    return re.sub(r"[^a-z]+", "", normalized(clean(value or "")))
+
+
+def map_rounds(result, week_dances):
+    """Late-season weeks: decide which Wikipedia row belongs to which of a couple's dances.
+
+    week_dances: [{dance_id, star_name, pro_name, round, round_label, dance_type, song_title}].
+    Adds by_dance {dance_id: performance or None} to each couple. Rows are matched by an
+    already-known style or song, then "Freestyle" rows to a Freestyle round, then the rest
+    in table order (skipping instant rounds, which only appear on the night). More rows than
+    rounds is left unmapped and reported in errors, never guessed."""
+    mode = result.get("mode")
+    errors = result.setdefault("errors", [])
+    grouped = {}
+    for dance in week_dances or []:
+        grouped.setdefault((dance.get("star_name"), dance.get("pro_name")), []).append(dance)
+    for record in result.get("couples", []):
+        dances = sorted(grouped.get((record["star_name"], record["pro_name"]), []), key=lambda d: d.get("round") or 1)
+        if not dances:
+            continue
+        perfs = record.get("performances") or []
+        if mode == "post-show":
+            record["by_dance"] = {d["dance_id"]: (perfs[0] if perfs else None) for d in dances}
+            continue
+        assigned, free = {}, list(range(len(perfs)))
+        for i in list(free):
+            perf = perfs[i]
+            style, song = _letters(perf.get("dance")), _letters(perf.get("song"))
+            hits = [d for d in dances if d["dance_id"] not in assigned and (
+                (style and style == _letters(d.get("dance_type"))) or (song and song == _letters(d.get("song_title"))))]
+            if len(hits) == 1:
+                assigned[hits[0]["dance_id"]] = perf
+                free.remove(i)
+        for i in list(free):
+            if "freestyle" in normalized(perfs[i].get("dance") or ""):
+                hits = [d for d in dances if d["dance_id"] not in assigned and "freestyle" in normalized(d.get("round_label") or "")]
+                if len(hits) == 1:
+                    assigned[hits[0]["dance_id"]] = perfs[i]
+                    free.remove(i)
+        rest = [d for d in dances if d["dance_id"] not in assigned]
+        if free:
+            # A couple's rows are in the order they danced, so with fewer rows than rounds (later
+            # dances not announced yet) the rows fill the earliest rounds, instant rounds last.
+            named = [d for d in rest if "instant" not in normalized(d.get("round_label") or "")]
+            target = (rest if len(free) == len(rest) else named if len(free) == len(named)
+                      else named[:len(free)] if len(free) < len(named) else None)
+            if target is None:
+                for d in rest:
+                    errors.append({"dance_id": d["dance_id"], "error":
+                        f"Couldn't tell which Wikipedia row is dance {d.get('round') or 1} for {record['star_name']}; enter it by hand"})
+            else:
+                for i, d in zip(free, target):
+                    assigned[d["dance_id"]] = perfs[i]
+        record["by_dance"] = {d["dance_id"]: assigned.get(d["dance_id"]) for d in dances}
+    return result
+
+
+def map_specials(result, week_specials, week_couples, formats=()):
+    """Team dances, dance-offs, relays and marathons from Wikipedia, matched to the week's
+    existing team / bonus dances (dance_id) or left for the importer to create (dance_id None).
+
+    week_specials: [{dance_id, kind, bonus_kind, team_name, name, couples: [partnership_id]}]
+    week_couples: [{partnership_id, star_name, pro_name}]"""
+    ids = {(c["star_name"], c["pro_name"]): c["partnership_id"] for c in week_couples or []}
+    specials = []
+    existing = week_specials or []
+    formats = set(formats or ())
+
+    def pids(couples):
+        return [ids[(c["star_name"], c["pro_name"])] for c in couples if (c["star_name"], c["pro_name"]) in ids]
+
+    def team_key(name):
+        return re.sub(r"^team", "", _letters(name))
+
+    for team in result.get("teams", []):
+        couples = pids(team["couples"])
+        found = [s for s in existing if s["kind"] == "team" and (
+            team_key(s.get("team_name")) == team_key(team["team_name"]) or (couples and set(s.get("couples") or []) == set(couples)))]
+        specials.append({"dance_id": found[0]["dance_id"] if len(found) == 1 else None, "kind": "team", "bonus_kind": None,
+                         "team_name": team["team_name"], "name": None, "dance": team["dance"], "song": team["song"],
+                         "artist": team["artist"], "scores": team["scores"], "total": team["total"],
+                         "couples": [{"partnership_id": p} for p in couples],
+                         "key": "team:" + team_key(team["team_name"])})
+    for match in result.get("matches", []):
+        kind = match["kind"]
+        if kind == "dance_off" and "relay" in formats and "dance_off" not in formats:
+            kind = "relay"
+        couples = [{"partnership_id": ids[(c["star_name"], c["pro_name"])], "result": c["result"]}
+                   for c in match["couples"] if (c["star_name"], c["pro_name"]) in ids]
+        pair = sorted(c["partnership_id"] for c in couples)
+        found = [s for s in existing if s["kind"] == "bonus" and s.get("bonus_kind") == kind and sorted(s.get("couples") or []) == pair]
+        winner = [c["partnership_id"] for c in couples if c["result"] == "winner"]
+        specials.append({"dance_id": found[0]["dance_id"] if len(found) == 1 else None, "kind": "bonus", "bonus_kind": kind,
+                         "team_name": None, "name": None, "dance": match["dance"], "song": match["song"],
+                         "artist": match["artist"], "couples": couples,
+                         "winner": winner[0] if len(winner) == 1 and len(couples) == 2 else None,
+                         "key": kind + ":" + ",".join(pair)})
+    for marathon in result.get("marathons", []):
+        couples = [{"partnership_id": ids[(c["star_name"], c["pro_name"])], "points": c["points"]}
+                   for c in marathon["couples"] if (c["star_name"], c["pro_name"]) in ids]
+        found = [s for s in existing if s["kind"] == "bonus" and s.get("bonus_kind") == "marathon"]
+        specials.append({"dance_id": found[0]["dance_id"] if len(found) == 1 else None, "kind": "bonus",
+                         "bonus_kind": "marathon", "team_name": None, "name": marathon["title"], "dance": None,
+                         "song": marathon["song"], "artist": marathon["artist"], "couples": couples,
+                         "key": "marathon:" + _letters(marathon["title"])})
+    result["specials"] = specials
     return result
 
 

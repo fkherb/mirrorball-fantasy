@@ -114,8 +114,20 @@ class Worker:
             return self.photo_result(task, preview)
         if task["mode"] == "get-weeks":
             return self.wiki.fetch_information("get-weeks")
-        couples = [{"star_name": t["star_name"], "pro_name": t["pro_name"]} for t in task["targets"]]
-        return self.wiki.fetch_information(task["mode"], couples, task.get("week_tag"))
+        # Late-season weeks also send every couple in the week (team dances, dance-offs and
+        # marathons name couples that may already be done) and each couple's dances by round.
+        couples, seen = [], set()
+        for t in list(task.get("week_couples") or []) + [t for t in task["targets"] if t.get("star_name")]:
+            key = (t["star_name"], t["pro_name"])
+            if key not in seen:
+                seen.add(key)
+                couples.append({"star_name": t["star_name"], "pro_name": t["pro_name"]})
+        result = self.wiki.fetch_information(task["mode"], couples, task.get("week_tag"))
+        if task.get("week_dances") is not None:
+            self.wiki.map_rounds(result, task["week_dances"])
+        if task.get("week_specials") is not None and task["mode"] in ("pre-show", "live-show"):
+            self.wiki.map_specials(result, task["week_specials"], task.get("week_couples"), task.get("formats"))
+        return result
 
     def persist(self, run_id, result):
         destination = self.state / ("pending-" + run_id + ".json")
