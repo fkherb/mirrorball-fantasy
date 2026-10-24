@@ -1,4 +1,4 @@
-import { resultSignature, latestResultsWeek } from './home-model.js?v=20261022-people-v117';
+import { resultSignature, latestResultsWeek } from './home-model.js?v=20261024-late-v118';
 
 let state = { enabled: true, hiddenWeek: null, seen: null };
 let accountKey = null;

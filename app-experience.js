@@ -1,10 +1,10 @@
-import { db } from './supabase-client.js?v=20261022-people-v117';
-import { homeSections, normalizeHomeLayout, weekRecap, teamStanding, latestResultsWeek } from './home-model.js?v=20261022-people-v117';
-import { configureSpoilers, observeResults, hiddenResultsWeek, setHiddenResults, spoilerWarningsEnabled, setSpoilerWarnings } from './spoiler-settings.js?v=20261022-people-v117';
-import { activePartnershipPredictionRows, weeklyPredictionFor, isActivePrediction, predictionPercent, easternDateTime, airingWindows } from './market-prediction-model.js?v=20261022-people-v117';
-import { danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261022-people-v117';
-import { danceSongList } from './dance-song.js?v=20261022-people-v117';
-import { splitDanceType } from './dance-type.js?v=20261022-people-v117';
+import { db } from './supabase-client.js?v=20261024-late-v118';
+import { homeSections, normalizeHomeLayout, weekRecap, teamStanding, latestResultsWeek } from './home-model.js?v=20261024-late-v118';
+import { configureSpoilers, observeResults, hiddenResultsWeek, setHiddenResults, spoilerWarningsEnabled, setSpoilerWarnings } from './spoiler-settings.js?v=20261024-late-v118';
+import { activePartnershipPredictionRows, weeklyPredictionFor, isActivePrediction, predictionPercent, easternDateTime, airingWindows } from './market-prediction-model.js?v=20261024-late-v118';
+import { danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261024-late-v118';
+import { danceSongList } from './dance-song.js?v=20261024-late-v118';
+import { splitDanceType } from './dance-type.js?v=20261024-late-v118';
 
 const $ = (selector) => document.querySelector(selector);
 const html = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[char]);

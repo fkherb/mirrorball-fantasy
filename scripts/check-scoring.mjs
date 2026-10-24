@@ -49,7 +49,7 @@ assert.equal(scored.totalByTeam.get('team-a'), 94, 'an inactive partnership stil
 assert.equal(scored.totalByTeam.get('team-b'), 20, 'both past weeks use the current universal rate');
 assert.equal(scored.pointsByWeekTeam.get('week-1:team-a'), 68);
 assert.equal(scored.pointsByWeekTeam.get('week-2:team-a'), 26);
-assert.deepEqual(scored.pointsByWeekCast.get('week-2:bonus'), { official: 0, appearances: 10 });
+assert.deepEqual(scored.pointsByWeekCast.get('week-2:bonus'), { official: 0, appearances: 10, bonus: 0 });
 
 const lateStart = scoreLeague(fixture, { ...active, scoringStartsAfterWeek: 1 });
 assert.equal(lateStart.totalByTeam.get('team-a'), 26);
@@ -128,3 +128,43 @@ console.log('League scoring fixtures verified.');
   assert.equal(scoreLeague(withFillIn([{ dance_id: 'dance-1', cast_member_id: 'star', reason: 'suspended' }]), active).totalByTeam.get('team-a'), 60);
   assert.equal(scoreLeague(withFillIn([]), active).totalByTeam.get('team-b'), 26);
 }
+
+// Late-season formats: a second round, a team dance, a dance-off, a marathon and immunity.
+{
+  const late = {
+    teams: [{ id: 'a' }, { id: 'b' }],
+    cast: [{ id: 's1', role: 'Star' }, { id: 'p1', role: 'Pro' }, { id: 's2', role: 'Star' }, { id: 'p2', role: 'Pro' }, { id: 'troupe', role: 'Troupe' }],
+    pairs: [{ id: 'c1', star_id: 's1', pro_id: 'p1' }, { id: 'c2', star_id: 's2', pro_id: 'p2' }],
+    weeks: [{ id: 'w', number: 1, is_complete: true }],
+    dances: [
+      { id: 'r1', week_id: 'w', kind: 'competitive', partnership_id: 'c1', round: 1 },
+      { id: 'r2', week_id: 'w', kind: 'competitive', partnership_id: 'c1', round: 2, round_label: 'Instant Dance' },
+      { id: 'team', week_id: 'w', kind: 'team', team_name: 'Team Roar' },
+      { id: 'off', week_id: 'w', kind: 'bonus', bonus_kind: 'dance_off' },
+      { id: 'mara', week_id: 'w', kind: 'bonus', bonus_kind: 'marathon', name: 'Hustle Marathon' },
+    ],
+    scores: [
+      { dance_id: 'r1', score: 8 }, { dance_id: 'r1', score: 8 }, { dance_id: 'r1', score: 8 },
+      { dance_id: 'r2', score: 9 }, { dance_id: 'r2', score: 9 }, { dance_id: 'r2', score: 9 },
+      { dance_id: 'team', score: 10 }, { dance_id: 'team', score: 10 }, { dance_id: 'team', score: 10 },
+    ],
+    danceCouples: [
+      { dance_id: 'team', partnership_id: 'c1' }, { dance_id: 'team', partnership_id: 'c2' },
+      { dance_id: 'off', partnership_id: 'c1', result: 'loser' }, { dance_id: 'off', partnership_id: 'c2', result: 'winner' },
+      { dance_id: 'mara', partnership_id: 'c1', points: 2 }, { dance_id: 'mara', partnership_id: 'c2', points: 1 },
+    ],
+    immunities: [{ week_id: 'w', partnership_id: 'c2', points: 3 }],
+    // The troupe dancer on the team dance earns an appearance; s2 listed by mistake does not.
+    appearances: [{ dance_id: 'team', cast_member_id: 'troupe' }, { dance_id: 'team', cast_member_id: 's2' }],
+    roles: [{ id: 'r', name: 'Troupe', appearance_points: 4 }],
+    snapshots: ['s1', 'p1', 's2', 'p2', 'troupe'].map((id) => ({ week_id: 'w', cast_member_id: id,
+      fantasy_team_id: ['s1', 'p1'].includes(id) ? 'a' : 'b', cast_role: id === 'troupe' ? 'Troupe' : id.startsWith('s') ? 'Star' : 'Pro' })),
+  };
+  const result = scoreLeague(late, { leagueStatus: 'active', scoringStartsAfterWeek: 0 });
+  // c1 (team a): 24 + 27 (both rounds) + 30 (team) + 0 (lost the dance-off) + 2 (marathon) = 83 each, ×2.
+  assert.equal(result.totalByTeam.get('a'), 166, 'every round, the full team score and marathon points');
+  // c2 + troupe (team b): (30 team + 3 dance-off + 1 marathon + 3 immunity) × 2 + 4 troupe appearance = 78.
+  assert.equal(result.totalByTeam.get('b'), 78, 'bonus points to both partners; competing couples earn no appearance');
+  assert.deepEqual(result.pointsByWeekCast.get('w:s2'), { official: 30, appearances: 0, bonus: 7 });
+}
+console.log('Late-season rounds, team dances, dance-offs, marathons and immunity verified.');

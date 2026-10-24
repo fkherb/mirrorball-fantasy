@@ -1,21 +1,21 @@
-import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261022-people-v117';
-import { observeResults, configureSpoilers } from './spoiler-settings.js?v=20261022-people-v117';
-import { competitiveAwards } from './scoring.js?v=20261022-people-v117';
+import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261024-late-v118';
+import { observeResults, configureSpoilers } from './spoiler-settings.js?v=20261024-late-v118';
+import { competitiveAwards } from './scoring.js?v=20261024-late-v118';
 let appAccess = {};
-import { judgeOrderFor, sortJudgeScores, regularJudgeNames, loadRegularJudges } from './judge-panel.js?v=20261022-people-v117';
-import { db } from './supabase-client.js?v=20261022-people-v117';
-import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261022-people-v117';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261022-people-v117';
-import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261022-people-v117';
-import { loadMarketPredictions } from './market-predictions.js?v=20261022-people-v117';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261022-people-v117';
-import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261022-people-v117';
-import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261022-people-v117';
-import { splitDanceType, joinDanceType } from './dance-type.js?v=20261022-people-v117';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261022-people-v117';
-import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261022-people-v117';
-import { isTradeAiringLocked } from './week-airing-policy.js?v=20261022-people-v117';
-import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261022-people-v117';
+import { judgeOrderFor, sortJudgeScores, regularJudgeNames, loadRegularJudges } from './judge-panel.js?v=20261024-late-v118';
+import { db } from './supabase-client.js?v=20261024-late-v118';
+import { renderLeagueHub, renderSecondaryLeague, stopSecondaryLeague } from './league-workspace.js?v=20261024-late-v118';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, judgePortraitFor, judgeMemberFor, teamPage, roleRatesTable, castProfile, danceDetail, danceSongSummary, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261024-late-v118';
+import { danceImagesFor, couplePhotoFor, startDanceImageUpdates } from './dance-images.js?v=20261024-late-v118';
+import { loadMarketPredictions } from './market-predictions.js?v=20261024-late-v118';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261024-late-v118';
+import { appearanceValue, calculateLeaguePoints, roleForWeek, sharedAppearanceRate } from './scoring.js?v=20261024-late-v118';
+import { danceSongParts, danceSongLabel } from './dance-song.js?v=20261024-late-v118';
+import { splitDanceType, joinDanceType } from './dance-type.js?v=20261024-late-v118';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261024-late-v118';
+import { automationFields, automationStatus, judgeOrderFields, readAutomationFields } from './week-automation.js?v=20261024-late-v118';
+import { isTradeAiringLocked } from './week-airing-policy.js?v=20261024-late-v118';
+import { guestPhotoFields, bindGuestPhotoEditor, bindPredictionStatus } from './week-owner-controls.js?v=20261024-late-v118';
 const $ = (selector) => document.querySelector(selector);
 const appSurface = document.body.dataset.surface || 'league';
 const isScoreDeskSurface = appSurface === 'score-desk';
@@ -655,7 +655,7 @@ async function loadStandings() {
   const loadVersion = ++loadVersions.standings;
   $('#standingsContent').innerHTML = loadingMarkup('Loading standings');
   if ($('#publicTeamResults')) $('#publicTeamResults').innerHTML = loadingMarkup('Loading your team');
-  const [teamsResult, membersResult, rolesResult, partnershipsResult, weeksResult, dancesResult, scoresResult, appearancesResult, castChangesResult] = await Promise.all([
+  const [teamsResult, membersResult, rolesResult, partnershipsResult, weeksResult, dancesResult, scoresResult, appearancesResult, castChangesResult, danceCouplesResult, immunitiesResult] = await Promise.all([
     db.from('fantasy_teams').select('id,manager_name,team_name').eq('league_id', defaultLeagueId).order('manager_name'),
     db.from('cast_members').select('*').order('name'),
     db.from('roles').select('name,appearance_points'),
@@ -665,6 +665,9 @@ async function loadStandings() {
     db.from('dance_judge_scores').select('dance_id,judge_name,score'),
     db.from('dance_appearances').select('id,dance_id,cast_member_id'),
     db.from('dance_cast_changes').select('dance_id,cast_member_id,replacement_cast_member_id,reason,description'),
+    // Late-season formats (optional until the tables exist).
+    db.from('dance_couples').select('dance_id,partnership_id,result,points'),
+    db.from('week_immunities').select('week_id,partnership_id,points,note'),
   ]);
   if (loadVersion !== loadVersions.standings) return;
   const error = [teamsResult, membersResult, rolesResult, partnershipsResult, weeksResult, dancesResult, scoresResult, appearancesResult, castChangesResult].find((result) => result.error)?.error;
@@ -694,7 +697,7 @@ async function loadStandings() {
   const managerMap = await getTeamManagerMap();
   if (loadVersion !== loadVersions.standings) return;
   const displayTeams = teamsResult.data.map((team) => ({ ...team, manager_name: managerNameFor(team, managerMap) }));
-  const data = { teams: displayTeams, members: membersResult.data, roles: rolesResult.data, partnerships: partnershipsResult.data, weeks: weeksResult.data, dances: dancesResult.data, scores: scoresResult.data, appearances: appearancesResult.data, rosterSnapshots, castChanges: castChangesResult.data, isOriginalLeague: true };
+  const data = { teams: displayTeams, members: membersResult.data, roles: rolesResult.data, partnerships: partnershipsResult.data, weeks: weeksResult.data, dances: dancesResult.data, scores: scoresResult.data, appearances: appearancesResult.data, rosterSnapshots, castChanges: castChangesResult.data, danceCouples: danceCouplesResult.data || [], immunities: immunitiesResult.data || [], isOriginalLeague: true };
   const { teams, members, weeks, memberPoints, weekMemberPoints } = calculateLeaguePoints(data);
   const snapshotTeamByWeekMember = new Map(rosterSnapshots.map((snapshot) => [`${snapshot.week_id}:${snapshot.cast_member_id}`, snapshot.fantasy_team_id]));
   const snapshotByWeekMember = new Map(rosterSnapshots.map((snapshot) => [`${snapshot.week_id}:${snapshot.cast_member_id}`, snapshot]));

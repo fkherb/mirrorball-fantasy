@@ -1,11 +1,11 @@
-import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261022-people-v117';
-import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261022-people-v117';
-import { avatarImageStyle } from './cast-avatar-frame.js?v=20261022-people-v117';
-import { guestPhotoPath } from './week-owner-controls.js?v=20261022-people-v117';
-import { dancePhotoSource } from './dance-images.js?v=20261022-people-v117';
-import { youtubeVideoFor } from './dance-video.js?v=20261022-people-v117';
+import { danceSongParts, danceSongLabel, danceSongList } from './dance-song.js?v=20261024-late-v118';
+import { judgeOrderFor, sortJudgeScores } from './judge-panel.js?v=20261024-late-v118';
+import { avatarImageStyle } from './cast-avatar-frame.js?v=20261024-late-v118';
+import { guestPhotoPath } from './week-owner-controls.js?v=20261024-late-v118';
+import { dancePhotoSource } from './dance-images.js?v=20261024-late-v118';
+import { youtubeVideoFor } from './dance-video.js?v=20261024-late-v118';
 
-import { hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261022-people-v117';
+import { hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261024-late-v118';
 
 // Completed leagues share these view templates. Callers adapt their league-scoped
 // database records into the same view models and keep their own action handlers.

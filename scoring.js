@@ -28,6 +28,9 @@ export function sharedAppearanceRate(member, snapshot, rateByName, isOriginalLea
   return rateByName.get(role) || 0;
 }
 
+/** Points for winning a dance-off or relay. */
+export const MATCH_BONUS = 3;
+
 // Keep this allocation in sync with iOS Scoring.competitiveAwards and
 // get_league_scores. Replacements earn judges' points instead of an appearance.
 export function competitiveAwards(data, scoreByDance) {
@@ -61,6 +64,35 @@ export function competitiveAwards(data, scoreByDance) {
       skippedAppearances.add(`${dance.id}:${id}`);
     }
   }
+  // Late-season formats (same as Scoring.swift and get_league_scores): a team dance pays its
+  // judges' total to every couple on the team; a dance-off or relay win pays MATCH_BONUS, a
+  // marathon DWTS's points; immunity what was entered. Those couples earn no appearance for it.
+  const couplesByDance = new Map();
+  for (const entry of data.danceCouples || []) {
+    if (!couplesByDance.has(entry.dance_id)) couplesByDance.set(entry.dance_id, []);
+    couplesByDance.get(entry.dance_id).push(entry);
+  }
+  for (const dance of data.dances.filter((item) => item.kind === 'team' || item.kind === 'bonus')) {
+    const total = scoreByDance.get(dance.id) || 0;
+    for (const entry of couplesByDance.get(dance.id) || []) {
+      const pair = pairs.get(entry.partnership_id);
+      if (!pair) continue;
+      const points = dance.kind === 'team' ? total
+        : dance.bonus_kind === 'marathon' ? Number(entry.points) || 0
+        : entry.result === 'winner' ? MATCH_BONUS : 0;
+      for (const id of [pair.star_id, pair.pro_id].filter(Boolean)) {
+        awards.push({ castId: id, points, weekId: dance.week_id, danceId: dance.id, bonus: dance.kind === 'bonus' });
+        skippedAppearances.add(`${dance.id}:${id}`);
+      }
+    }
+  }
+  for (const immunity of data.immunities || []) {
+    const pair = pairs.get(immunity.partnership_id);
+    if (!pair) continue;
+    for (const id of [pair.star_id, pair.pro_id].filter(Boolean)) {
+      awards.push({ castId: id, points: Number(immunity.points) || 0, weekId: immunity.week_id, danceId: `immunity:${immunity.week_id}`, bonus: true });
+    }
+  }
   return { awards, skippedAppearances };
 }
 
@@ -79,14 +111,14 @@ export function calculateLeaguePoints(data) {
     memberPoints.set(memberId, (memberPoints.get(memberId) || 0) + points);
     if (!weekMemberPoints.has(weekId)) weekMemberPoints.set(weekId, new Map());
     const memberWeek = weekMemberPoints.get(weekId);
-    const record = memberWeek.get(memberId) || { official: 0, appearances: 0, appearanceCount: 0, appearanceRates: [] };
+    const record = memberWeek.get(memberId) || { official: 0, appearances: 0, bonus: 0, appearanceCount: 0, appearanceRates: [] };
     record[kind] += points;
     if (kind === 'appearances') { record.appearanceCount += 1; record.appearanceRates.push(points); }
     memberWeek.set(memberId, record);
   };
   data.scores.forEach((score) => scoresByDance.set(score.dance_id, (scoresByDance.get(score.dance_id) || 0) + score.score));
   const competitive = competitiveAwards(data, scoresByDance);
-  competitive.awards.forEach(({ castId, weekId, points }) => add(castId, weekId, 'official', points));
+  competitive.awards.forEach(({ castId, weekId, points, bonus }) => add(castId, weekId, bonus ? 'bonus' : 'official', points));
   data.appearances.forEach((appearance) => {
     if (competitive.skippedAppearances.has(`${appearance.dance_id}:${appearance.cast_member_id}`)) return;
     const dance = danceById.get(appearance.dance_id);
@@ -133,12 +165,12 @@ export function scoreLeague(data, context) {
     const key = `${weekId}:${teamId}`;
     pointsByWeekTeam.set(key, (pointsByWeekTeam.get(key) || 0) + amount);
     const castKey = `${weekId}:${castId}`;
-    const detail = pointsByWeekCast.get(castKey) || { official: 0, appearances: 0 };
+    const detail = pointsByWeekCast.get(castKey) || { official: 0, appearances: 0, bonus: 0 };
     detail[source] += amount;
     pointsByWeekCast.set(castKey, detail);
   };
   const competitive = competitiveAwards(data, scoreByDance);
-  competitive.awards.forEach(({ castId, weekId, points }) => add(castId, weekId, points, 'official'));
+  competitive.awards.forEach(({ castId, weekId, points, bonus }) => add(castId, weekId, points, bonus ? 'bonus' : 'official'));
   data.appearances.forEach((appearance) => {
     if (competitive.skippedAppearances.has(`${appearance.dance_id}:${appearance.cast_member_id}`)) return;
     const dance = danceById.get(appearance.dance_id);

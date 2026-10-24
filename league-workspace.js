@@ -1,14 +1,15 @@
-import { db } from './supabase-client.js?v=20261022-people-v117';
-import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261022-people-v117';
-import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261022-people-v117';
-import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261022-people-v117';
-import { loadMarketPredictions } from './market-predictions.js?v=20261022-people-v117';
-import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261022-people-v117';
-import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261022-people-v117';
-import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261022-people-v117';
-import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261022-people-v117';
-import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261022-people-v117';
-import { observeResults, hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261022-people-v117';
+import { specialDanceTitle, formatSubtitle, danceCouplesFor } from './dance-format.js?v=20261024-late-v118';
+import { db } from './supabase-client.js?v=20261024-late-v118';
+import { episodeSpotlight, standingsSwitch, standingCard, scoreRows, overviewTeamDetail, highlightCards, teamCard, teamDetail, castRosterRow, castThumbnailFor, judgePortraitFor, judgeMemberFor, danceCard, fitDanceCardNames, fitDanceCastAvatars, fitDanceSongLabels, teamPage, roleRatesTable, castProfile, danceDetail, bindDanceGallery, bindCastPredictionToggle } from './postdraft-view.js?v=20261024-late-v118';
+import { danceImagesFor, danceCardPhotoFor, couplePhotoFor } from './dance-images.js?v=20261024-late-v118';
+import { couplePhotoFrameFor, couplePhotoStyle } from './couple-photo-frame.js?v=20261024-late-v118';
+import { loadMarketPredictions } from './market-predictions.js?v=20261024-late-v118';
+import { activePartnershipPredictionRows, nextPredictionWeek, seasonPredictionsFor, weeklyPredictionFor } from './market-prediction-model.js?v=20261024-late-v118';
+import { isDraftAiringLocked, isDraftStartBlocked, isTradeAiringLocked } from './week-airing-policy.js?v=20261024-late-v118';
+import { scoreLeague, sharedAppearanceRate } from './scoring.js?v=20261024-late-v118';
+import { calculateRosterLimits, rosterCounts, rosterExchangeIssue, allowedExchangeCategories, draftCanFinish, draftCategoryEligibility } from './roster-rules.js?v=20261024-late-v118';
+import { updateAppExperience, enhanceDanceDetail } from './app-experience.js?v=20261024-late-v118';
+import { observeResults, hidesResults, hiddenScoreMarkup, spoilerRole } from './spoiler-settings.js?v=20261024-late-v118';
 
 const $ = (selector) => document.querySelector(selector);
 const safe = (value = '') => String(value ?? '').replace(/[&<>"']/g, (char) => ({
@@ -42,7 +43,7 @@ let lastSnapshotCheckAt = 0;
 let lastSnapshotLeagueId = null;
 const fullWorkspaceRefreshMs = 2 * 60 * 1000;
 const snapshotCheckMs = 5 * 60 * 1000;
-const fastWorkspaceKeys = new Set(['league', 'autoDraft', 'draftRoles', 'rosterRules', 'assignments', 'cast', 'roles', 'weeks', 'dances', 'scores', 'appearances', 'castChanges']);
+const fastWorkspaceKeys = new Set(['league', 'autoDraft', 'draftRoles', 'rosterRules', 'assignments', 'cast', 'roles', 'weeks', 'dances', 'scores', 'appearances', 'castChanges', 'danceCouples', 'immunities']);
 
 function dialog(markup) {
   const modal = $('#modal');
@@ -575,6 +576,9 @@ async function loadWorkspaceData(context, { light = false, previous = null } = {
     scores: db.from('dance_judge_scores').select('dance_id,judge_name,score'),
     appearances: db.from('dance_appearances').select('dance_id,cast_member_id'),
     castChanges: db.from('dance_cast_changes').select('dance_id,cast_member_id,replacement_cast_member_id,reason,description'),
+    // Team dances, bonus rounds and immunity (late-season formats).
+    danceCouples: db.from('dance_couples').select('dance_id,partnership_id,result,points'),
+    immunities: db.from('week_immunities').select('week_id,partnership_id,points,note'),
     snapshots: db.from('league_weekly_roster_snapshots').select('*').eq('league_id', leagueId),
     order: db.from('league_draft_order').select('draft_position,fantasy_team_id').eq('league_id', leagueId).order('draft_position'),
     picks: db.from('league_draft_picks').select('pick_number,round_number,fantasy_team_id,cast_member_id,picked_at,is_auto_pick').eq('league_id', leagueId).order('pick_number'),
@@ -584,7 +588,7 @@ async function loadWorkspaceData(context, { light = false, previous = null } = {
   const selected = Object.entries(queries).filter(([key]) => full || fastWorkspaceKeys.has(key));
   const results = await Promise.all(selected.map(([, query]) => query));
   const failure = results.find((result, index) => result.error
-    && !['autoDraft', 'draftRoles'].includes(selected[index][0]))?.error;
+    && !['autoDraft', 'draftRoles', 'danceCouples', 'immunities'].includes(selected[index][0]))?.error;
   if (failure) throw failure;
   if (full) lastFullWorkspaceLoadAt = Date.now();
   const assembled = { ...(full ? {} : previous.data),
@@ -1180,7 +1184,7 @@ function openWorkspaceDanceDetail(data, score, assignmentMap, memberByTeam, week
   }).sort((a, b) => b.points - a.points || a.member.name.localeCompare(b.member.name));
   const totals = new Map();
   rows.forEach((row) => { if (row.teamId) totals.set(row.teamName, (totals.get(row.teamName) || 0) + row.points); });
-  const title = star && pro ? `${star.name} & ${pro.name}` : dance.name || 'Performance';
+  const title = specialDanceTitle(dance, data) || (star && pro ? `${star.name} & ${pro.name}` : dance.name || 'Performance');
   dialog(`${backToProfile ? '<div class="modal-back-row"><button class="profile-back-button secondary" id="danceBackToProfile" type="button" aria-label="Back to profile">← Back</button></div>' : ''}${danceDetail({ kind: dance.kind, title, danceType: dance.dance_type, performanceType: dance.performance_type, songTitle: dance.song_title, songArtist: dance.song_artist, choreography: dance.choreography, photos: danceImagesFor(week.number, title, dance.airing_night), placeholderPhoto: dance.kind === 'competitive' ? couplePhotoFor(title) : '', weekNumber: week.number, airingNight: week.second_air_date ? dance.airing_night : null,
     youtubeVideoId: dance.youtube_video_id, youtubeMatchStatus: dance.youtube_match_status, youtubeTitle: dance.youtube_title,
     scores, scoreImage: (value) => `Images/Judges Scores/${Number(value)}.png?v=20260921-optimized`,
@@ -1221,21 +1225,26 @@ function renderDances(context, data, score, assignmentMap, memberByTeam) {
     .format(new Date(`${week.air_date}T00:00:00Z`)) : '';
   content.innerHTML = `<div class="score-week-head card"><div class="week-heading"><p class="eyebrow">Week ${week.number}</p><div class="week-title-line"><h2>${safe(week.title || (week.theme ? `${week.theme} Week` : `Week ${week.number}`))}</h2></div><p class="sub">${safe([airDate, week.is_complete ? 'Week complete' : 'Upcoming week'].filter(Boolean).join(' · '))}</p></div><div class="week-summary"><span>${competitiveCount} competitive</span>${weekDances.length > competitiveCount ? `<span>${weekDances.length - competitiveCount} performances</span>` : ''}<span class="${week.is_complete ? 'week-complete' : 'week-upcoming'}">${week.is_complete ? 'Complete' : 'Upcoming'}</span></div></div><div class="dance-list">${weekDances.map((dance) => {
     const pair = pairById.get(dance.partnership_id);
-    const names = pair ? `${nameFor(pair.star_id)} & ${nameFor(pair.pro_id)}` : dance.name || 'Performance';
+    const special = specialDanceTitle(dance, data);
+    const names = special || (pair ? `${nameFor(pair.star_id)} & ${nameFor(pair.pro_id)}` : dance.name || 'Performance');
     const judges = data.scores.filter((item) => item.dance_id === dance.id);
-    const castMembers = data.appearances.filter((item) => item.dance_id === dance.id)
-      .map((appearance) => castById.get(appearance.cast_member_id)).filter(Boolean);
+    // Team dances and bonus rounds tag every couple in them, then anyone else on the floor.
+    const coupleMembers = danceCouplesFor(dance, data).flatMap((entry) => [entry.pair.star_id, entry.pair.pro_id])
+      .map((id) => castById.get(id)).filter(Boolean);
+    const castMembers = [...new Map([...coupleMembers, ...data.appearances.filter((item) => item.dance_id === dance.id)
+      .map((appearance) => castById.get(appearance.cast_member_id)).filter(Boolean)].map((member) => [member.id, member])).values()];
     const castNames = castMembers.map((member) => member.name);
     const proName = pair ? nameFor(pair.pro_id).trim().split(/\s+/) : [];
     const shortTitle = pair && proName.length > 1
       ? `${nameFor(pair.star_id)} & ${proName.slice(0, -1).join(' ')}` : '';
-    return danceCard({ id: dance.id, kind: dance.kind, title: names, shortTitle,
+    return danceCard({ id: dance.id, kind: dance.kind === 'team' ? 'competitive' : dance.kind === 'bonus' ? 'performance' : dance.kind,
+      title: names, shortTitle: special ? '' : shortTitle,
       photos: danceImagesFor(week.number, names, dance.airing_night), cardPhoto: danceCardPhotoFor(week.number, names, dance.airing_night),
       placeholderPhoto: dance.kind === 'competitive' ? couplePhotoFor(names) : '',
       placeholderStyle: pair ? couplePhotoStyle(couplePhotoFrameFor(castById.get(pair.star_id), pair.pro_id)) : '',
       poster: true, complete: Boolean(week.is_complete), guestJudge: Boolean(week.guest_judge_name),
       weekNumber: week.number, airingNight: week.second_air_date ? dance.airing_night : null,
-      danceType: dance.dance_type, performanceType: dance.performance_type, songTitle: dance.song_title, songArtist: dance.song_artist, choreography: dance.choreography, scores: judges, castNames, castMembers,
+      danceType: dance.dance_type, performanceType: formatSubtitle(dance) || dance.performance_type, songTitle: dance.song_title, songArtist: dance.song_artist, choreography: dance.choreography, scores: judges, castNames, castMembers,
       imageFor: castImage,
       scoreImage: (value) => `Images/Judges Scores/${Number(value)}.png?v=20260921-optimized`,
       week, judgePhoto: (name) => judgePortraitFor(name, '', week),
