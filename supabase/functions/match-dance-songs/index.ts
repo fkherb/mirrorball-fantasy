@@ -183,10 +183,16 @@ async function spotifyFor(title: string, artist: string | null) {
   url.searchParams.set('q', artist ? `track:${title} artist:${primaryArtist(artist)}` : `track:${title}`);
   url.searchParams.set('type', 'track');
   url.searchParams.set('market', 'US');
-  url.searchParams.set('limit', '20');
+  // Development Mode apps (Spotify's February 2026 rules) allow at most 10 results;
+  // asking for more fails the whole search with a 400.
+  url.searchParams.set('limit', '10');
   const response = await fetch(url, { headers: { authorization: `Bearer ${token}` }, signal: AbortSignal.timeout(15000) });
   if (response.status === 429) throw new RateLimited('Spotify rate limit');
-  if (!response.ok) return null;
+  if (!response.ok) {
+    // Logged so a rejected search shows up in the function logs instead of a silent miss.
+    console.error('spotify search', response.status, (await response.text()).slice(0, 300));
+    return null;
+  }
   const body = await response.json();
   const items = (body?.tracks?.items ?? []) as SpotifyTrack[];
   const wanted = titleKey(title);
