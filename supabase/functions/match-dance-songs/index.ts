@@ -175,12 +175,10 @@ async function spotifyAccessToken() {
   return spotifyToken.value;
 }
 
-/** The Spotify track for the same song: matching title and artist, earliest album release. */
-async function spotifyFor(title: string, artist: string | null) {
-  const token = await spotifyAccessToken();
-  if (!token) return null;
+/** One Spotify search; the tracks it returns (null when Spotify rejected the search). */
+async function spotifySearch(token: string, query: string) {
   const url = new URL('https://api.spotify.com/v1/search');
-  url.searchParams.set('q', artist ? `track:${title} artist:${primaryArtist(artist)}` : `track:${title}`);
+  url.searchParams.set('q', query);
   url.searchParams.set('type', 'track');
   url.searchParams.set('market', 'US');
   // Development Mode apps (Spotify's February 2026 rules) allow at most 10 results;
@@ -194,18 +192,44 @@ async function spotifyFor(title: string, artist: string | null) {
     return null;
   }
   const body = await response.json();
-  const items = (body?.tracks?.items ?? []) as SpotifyTrack[];
+  return (body?.tracks?.items ?? []) as SpotifyTrack[];
+}
+
+/** The first act in a shared credit: "Shakira and Burna Boy" → "shakira" (Spotify's
+ *  artist: filter matches one artist, so a joined credit finds nothing). */
+function leadArtist(artist: string) {
+  return primaryArtist(artist).split(/\s+(?:and|x|vs)\s+|\s*,\s*/)[0].trim();
+}
+
+/** The Spotify track for the same song: matching title and artist, earliest album release. */
+async function spotifyFor(title: string, artist: string | null) {
+  const token = await spotifyAccessToken();
+  if (!token) return null;
   const wanted = titleKey(title);
-  const candidates = items.filter((track) => track.name && track.external_urls?.spotify
-    && !unwanted.test(track.name) && !unwanted.test(track.album?.name || '')
-    && titleKey(track.name) === wanted
-    && (!artist || (track.artists ?? []).some((credit) => credit.name && sameArtist(artist, credit.name))));
-  const own = candidates.filter((track) => track.album?.album_type !== 'compilation' && !compilation.test(track.album?.name || ''));
-  const pool = own.length ? own : candidates;
-  pool.sort((a, b) => (a.album?.release_date || '9999').localeCompare(b.album?.release_date || '9999')
-    || (a.album?.album_type === 'album' ? 0 : 1) - (b.album?.album_type === 'album' ? 0 : 1));
-  const link = pool[0]?.external_urls?.spotify;
-  return link && link.startsWith('https://open.spotify.com/track/') ? link.split('?')[0] : null;
+  const pick = (items: SpotifyTrack[]) => {
+    const candidates = items.filter((track) => track.name && track.external_urls?.spotify
+      && !unwanted.test(track.name) && !unwanted.test(track.album?.name || '')
+      && titleKey(track.name) === wanted
+      && (!artist || (track.artists ?? []).some((credit) => credit.name && sameArtist(artist, credit.name))));
+    const own = candidates.filter((track) => track.album?.album_type !== 'compilation' && !compilation.test(track.album?.name || ''));
+    const pool = own.length ? own : candidates;
+    pool.sort((a, b) => (a.album?.release_date || '9999').localeCompare(b.album?.release_date || '9999')
+      || (a.album?.album_type === 'album' ? 0 : 1) - (b.album?.album_type === 'album' ? 0 : 1));
+    const link = pool[0]?.external_urls?.spotify;
+    return link && link.startsWith('https://open.spotify.com/track/') ? link.split('?')[0] : null;
+  };
+  // The whole credit first, then just the lead act for a duet ("Shakira and Burna Boy").
+  const queries = [artist ? `track:${title} artist:${primaryArtist(artist)}` : `track:${title}`];
+  if (artist && leadArtist(artist) && leadArtist(artist) !== primaryArtist(artist)) {
+    queries.push(`track:${title} artist:${leadArtist(artist)}`);
+  }
+  for (const query of queries) {
+    const items = await spotifySearch(token, query);
+    if (!items) return null;
+    const link = pick(items);
+    if (link) return link;
+  }
+  return null;
 }
 
 async function matchOne(dance: Pending) {
