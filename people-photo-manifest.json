@@ -1322,6 +1322,36 @@
       }
     },
     {
+      "folder": "Assets/Guest/Cynthia Erivo",
+      "name": "Cynthia Erivo",
+      "source": "Assets/Guest/Cynthia Erivo/Cynthia Erivo.jpeg",
+      "sourceSha": "6ed8b0ad3f0d466f",
+      "crops": {
+        "profile": {
+          "x": 50,
+          "y": 10,
+          "zoom": 2.2
+        },
+        "card": {
+          "x": 50,
+          "y": 10,
+          "zoom": 1
+        },
+        "portrait": {
+          "x": 50,
+          "y": 8,
+          "zoom": 1
+        }
+      },
+      "key": "72de19a0f848265d",
+      "files": {
+        "profile": "Images/People/Cynthia Erivo/profile.webp",
+        "card": "Images/People/Cynthia Erivo/card.webp",
+        "portrait": "Images/People/Cynthia Erivo/portrait.webp",
+        "full": "Images/People/Cynthia Erivo/full.webp"
+      }
+    },
+    {
       "folder": "Assets/Guest/Danny Amendola",
       "name": "Danny Amendola",
       "source": "Assets/Guest/Danny Amendola/Danny Amendola.jpg",
