@@ -1422,6 +1422,14 @@
       "sha": "c8f53815377407a8"
     },
     {
+      "path": "Images/Dances/Card/Week 7/Tyler Cameron and Sharna Burgess-1.webp",
+      "sha": "a180c5226119960a"
+    },
+    {
+      "path": "Images/Dances/Card/Week 7/Tyler Cameron and Sharna Burgess-2.webp",
+      "sha": "d471681b95c76cc3"
+    },
+    {
       "path": "Images/Dances/Week 1/Amber Glenn and Pasha Pashkov-Night 2-1.jpeg",
       "sha": "e9aa12a2174521fc"
     },
@@ -3180,6 +3188,22 @@
     {
       "path": "Images/Dances/Week 7/Tatyana Ali and Jan Ravnik-3.jpeg.source.json",
       "sha": "cd728c60d64cbadc"
+    },
+    {
+      "path": "Images/Dances/Week 7/Tyler Cameron and Sharna Burgess-1.jpeg",
+      "sha": "0133598632241d83"
+    },
+    {
+      "path": "Images/Dances/Week 7/Tyler Cameron and Sharna Burgess-1.jpeg.source.json",
+      "sha": "36d47ec319826bdf"
+    },
+    {
+      "path": "Images/Dances/Week 7/Tyler Cameron and Sharna Burgess-2.jpeg",
+      "sha": "2d6e5ff998e40a28"
+    },
+    {
+      "path": "Images/Dances/Week 7/Tyler Cameron and Sharna Burgess-2.jpeg.source.json",
+      "sha": "61c723aacfc6ca80"
     }
   ]
 }
