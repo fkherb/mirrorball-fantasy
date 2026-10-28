@@ -9,12 +9,9 @@ export function danceCouplesFor(dance, data) {
     .map((entry) => ({ ...entry, pair: pairs.get(entry.partnership_id) })).filter((entry) => entry.pair);
 }
 
-/** "Team Roar Dance", "Amber vs Jenna", or the marathon's own title; null for other dances. */
+/** "Team Roar", "Amber vs Jenna", or the marathon's own title; null for other dances. */
 export function specialDanceTitle(dance, data) {
-  if (dance.kind === 'team') {
-    const team = String(dance.team_name || 'Team').trim();
-    return /dance/i.test(team) ? team : `${team} Dance`;
-  }
+  if (dance.kind === 'team') return String(dance.team_name || '').trim() || 'Team Dance';
   if (dance.kind !== 'bonus') return null;
   if (dance.bonus_kind === 'marathon') return dance.name || 'Marathon';
   const cast = new Map((data.cast || data.members || []).map((member) => [member.id, member]));
