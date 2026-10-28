@@ -1329,21 +1329,21 @@
       "crops": {
         "profile": {
           "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "y": 19.67,
+          "zoom": 1
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 50.91,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 0,
           "zoom": 1
         }
       },
-      "key": "72de19a0f848265d",
+      "key": "c78b7d87be3efeb1",
       "files": {
         "profile": "Images/People/Cynthia Erivo/profile.webp",
         "card": "Images/People/Cynthia Erivo/card.webp",
