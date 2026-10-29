@@ -303,6 +303,11 @@ def pair_key(label):
 def music_information(raw):
     if raw is None:
         return {"song": None, "artist": None}
+    # Theme weeks name the source after the song: '"Zoo" (from Zootopia 2)'.
+    source = None
+    sourced = re.fullmatch(r'(.*["”])\s*\(\s*from\s+([^)]+)\)\s*(.*)', raw, flags=re.I)
+    if sourced:
+        raw, source = clean(sourced.group(1) + " " + sourced.group(3)), clean(sourced.group(2))
     # Quotes let a song title itself contain an em dash without becoming an artist.
     quoted = re.fullmatch(r'["“](.*)["”](?:\s*[—–-]\s*(.+))?', raw)
     if quoted:
@@ -310,7 +315,10 @@ def music_information(raw):
     else:
         pieces = re.split(r"\s+[—–]\s+", raw, maxsplit=1)
         song, artist = pieces[0], pieces[1] if len(pieces) == 2 else None
-    return {"song": clean(song), "artist": clean(artist) if artist else None}
+    info = {"song": clean(song), "artist": clean(artist) if artist else None}
+    if source:
+        info["source"] = source
+    return info
 
 
 def score_information(raw):
@@ -355,6 +363,14 @@ def elimination_information(raw):
 
 TEAM_DANCE = re.compile(r"\(\s*team\s+([^)]+?)\s*\)", re.I)
 PAIR_IN_TEXT = re.compile(r"([^\W\d_]+(?:[-’'][^\W\d_]+)*)\s*(?:&|\band\b)\s*([^\W\d_]+(?:[-’'][^\W\d_]+)*)", re.I)
+
+
+def team_leader(label):
+    """The co-host named above a team's couples: "Alfonso Ribeiro Amber & Pasha …" → "Alfonso".
+    None when the cell starts with a couple."""
+    before = clean(label or "").split("&", 1)[0].split()
+    leader = before[:-1]   # the last word before the first "&" is that couple's star
+    return first_name(" ".join(leader)).capitalize() if leader else None
 
 
 def special_kind(dance):
@@ -502,18 +518,27 @@ def parse_information(html, mode, couples=None, week_tag=None, page_url=DEFAULT_
             dance = field_value(row, columns, "dance")
             kind = special_kind(dance)
             label = field_value(row, columns, "couple")
+            # Some seasons name the team only by its co-host ("Alfonso Ribeiro" above the couples)
+            # with a plain "Freestyle" in the Dance cell: two or more couples in one cell is a team.
+            if kind is None and len(index.all_in(label)) >= 2:
+                kind = "team"
             if kind == "team":
-                name = clean(TEAM_DANCE.search(dance).group(1))
-                style = clean(TEAM_DANCE.sub("", dance)) or None
+                named = TEAM_DANCE.search(dance or "")
+                if named:
+                    name = clean(named.group(1))
+                    style = clean(TEAM_DANCE.sub("", dance)) or None
+                else:
+                    name = team_leader(label)
+                    style = clean(dance or "") or None
                 score = score_information(field_value(row, columns, "scores"))
-                team = {"team_name": name if normalized(name).startswith("team") else "Team " + name,
+                team = {"team_name": (name if normalized(name).startswith("team") else "Team " + name) if name else None,
                         "dance": style, **music_information(field_value(row, columns, "music")),
                         "scores": score["scores"], "total": score["total"], "scores_raw": score["scores_raw"],
                         "couples": [couple_name(r) for r in index.all_in(label)],
                         "table_index": table_index, "row_index": row_index}
                 if score.get("warning") and mode == "live-show":
                     warnings.append(f"{team['team_name']}: {score['warning']}")
-                if not any(t["team_name"] == team["team_name"] for t in teams):
+                if not any((t["team_name"] or t["couples"]) == (team["team_name"] or team["couples"]) for t in teams):
                     teams.append(team)
                 continue
             if kind == "marathon":

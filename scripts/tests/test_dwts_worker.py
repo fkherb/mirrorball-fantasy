@@ -192,6 +192,38 @@ class WorkerTests(unittest.TestCase):
         matched = self.late_result('live-show', existing)
         self.assertEqual([s['dance_id'] for s in matched['specials']], ['team-1', 'off-1', 'mara-1'])
 
+    def test_team_rows_named_by_their_co_host(self):
+        # Season 35's Disney Night: the co-host's name above the couples, a plain "Freestyle",
+        # the film in the Music cell, and an extra theme column.
+        html = (Path(__file__).parent / 'fixtures/co-host-teams-week.html').read_text()
+        couples = self.LATE['week_couples'] + [
+            {'partnership_id': 'p-harry', 'star_name': 'Harry Shum Jr.', 'pro_name': 'Jenna Johnson'}]
+        task = {'mode': 'pre-show', 'week_tag': '#Week_8:_Disney_Night', 'targets': [], **self.LATE,
+                'week_couples': couples, 'formats': ['team_dance'],
+                'week_specials': [
+                    {'dance_id': 'team-a', 'kind': 'team', 'team_name': 'Team Alfonso', 'couples': ['p-amber']},
+                    {'dance_id': 'team-j', 'kind': 'team', 'team_name': 'Team Julianne', 'couples': ['p-connor', 'p-ezra']}]}
+        with patch.object(self.w.wiki, 'fetch_page', return_value=(html, 1)):
+            result = self.w.gather(task)
+        alfonso, julianne = result['specials']
+        self.assertEqual((alfonso['team_name'], alfonso['dance'], alfonso['song'], alfonso['dance_id']),
+                         ('Team Alfonso', 'Freestyle', 'Zoo', 'team-a'))
+        self.assertEqual(julianne['song'], "We're All in This Together")
+        self.assertEqual([c['partnership_id'] for c in julianne['couples']], ['p-connor', 'p-ezra'])
+        self.assertEqual((julianne['team_name'], julianne['dance_id']), ('Team Julianne', 'team-j'))
+        # The team rows aren't anyone's own dance; each couple keeps its one performance.
+        self.assertEqual([c['partnership_id'] for c in alfonso['couples']], ['p-amber', 'p-harry'])
+        self.assertEqual([len(c['performances']) for c in result['couples']], [1, 1, 1, 1])
+        self.assertEqual(result['couples'][0]['performances'][0]['dance'], 'Quickstep')
+        # Live: the team's score row is read the same way, and the couples' own rows are untouched.
+        scored = html.replace('<td>Freestyle</td><td colspan="2">"Zoo"', '<td>Freestyle</td><td colspan="2">"Zoo"', 1)
+        scored = scored.replace('Harry &amp; Jenna</td><td></td><td>Freestyle', 'Harry &amp; Jenna</td><td>36 (9, 9, 9, 9)</td><td>Freestyle', 1)
+        with patch.object(self.w.wiki, 'fetch_page', return_value=(scored, 1)):
+            live = self.w.gather({**task, 'mode': 'live-show'})
+        team = next(t for t in live['specials'] if t['team_name'] == 'Team Alfonso')
+        self.assertEqual((team['total'], team['scores'], team['dance_id']), (36, [9, 9, 9, 9], 'team-a'))
+        self.assertEqual(live['errors'], [])
+
     def test_late_season_rounds_with_instant_and_freestyle(self):
         wiki = self.w.wiki
         dances = [{'dance_id': 'r1', 'star_name': 'A B', 'pro_name': 'C D', 'round': 1, 'round_label': "Judges' Pick"},
