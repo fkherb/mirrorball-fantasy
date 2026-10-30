@@ -146,12 +146,18 @@ export function startDanceImageUpdates() {
   document.addEventListener('visibilitychange', check);
 }
 
+// Group photos ("<title> Team Photo-1.jpg", e.g. a team dance's team portrait) come after the
+// dance's own photos, and stand in for them until those are uploaded.
+const extraSuffix = ' Team Photo';
+
 export function danceImagesFor(weekNumber, title, night = null) {
-  return uploadedFor(uploadedPhotos, Number(weekNumber), title, night) || [];
+  return [...(uploadedFor(uploadedPhotos, Number(weekNumber), title, night) || []),
+    ...(uploadedFor(uploadedPhotos, Number(weekNumber), `${title}${extraSuffix}`, night) || [])];
 }
 
 export function danceCardPhotoFor(weekNumber, title, night = null) {
-  return uploadedFor(uploadedCards, Number(weekNumber), title, night) || '';
+  return uploadedFor(uploadedCards, Number(weekNumber), title, night)
+    || uploadedFor(uploadedCards, Number(weekNumber), `${title}${extraSuffix}`, night) || '';
 }
 
 // Only API-imported photos have provenance files; manual uploads are unchanged.

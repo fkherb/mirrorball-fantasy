@@ -88,3 +88,21 @@ const sourceFetcher = (data) => async () => ({ ok: true, json: async () => data 
 assert.deepEqual(await dancePhotoSource(imported, sourceFetcher(provenance)), provenance);
 assert.equal(await dancePhotoSource(imported, sourceFetcher({ ...provenance, post_url: 'javascript:alert(1)' })), null);
 assert.equal(await dancePhotoSource('https://evil.example/photo.jpg', () => { throw new Error('Must not fetch'); }), null);
+
+// Team photos ("<title> Team Photo-N") follow the dance's own photos and stand in until they're up.
+{
+  const teamTree = [
+    { type: 'blob', path: 'Images/Dances/Week 8/Team Slaytopia Team Photo-1.jpg', sha: 'team-1' },
+    { type: 'blob', path: 'Images/Dances/Card/Week 8/Team Slaytopia Team Photo-1.webp', sha: 'team-card' },
+  ];
+  const fetchTree = (entries) => async () => ({ ok: true, json: async () => ({ tree: entries }) });
+  await refreshDanceImages({ force: true, fetcher: fetchTree(teamTree), now: 9_000_000 });
+  assert.deepEqual(danceImagesFor(8, 'Team Slaytopia').map((url) => url.split('?v=')[1]), ['team-1']);
+  assert.match(danceCardPhotoFor(8, 'Team Slaytopia'), /Team%20Slaytopia%20Team%20Photo-1\.webp/);
+  await refreshDanceImages({ force: true, now: 9_500_000, fetcher: fetchTree([...teamTree,
+    { type: 'blob', path: 'Images/Dances/Week 8/Team Slaytopia-1.jpg', sha: 'dance-1' },
+    { type: 'blob', path: 'Images/Dances/Card/Week 8/Team Slaytopia-1.webp', sha: 'dance-card' }]) });
+  assert.deepEqual(danceImagesFor(8, 'Team Slaytopia').map((url) => url.split('?v=')[1]), ['dance-1', 'team-1']);
+  assert.match(danceCardPhotoFor(8, 'Team Slaytopia'), /Card\/Week%208\/Team%20Slaytopia-1\.webp/);
+}
+console.log('Team photos verified.');
