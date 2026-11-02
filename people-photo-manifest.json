@@ -1598,22 +1598,22 @@
       "sourceSha": "38cb3e9001c6ae59",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 33.97,
+          "y": 5.83,
+          "zoom": 1.6
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 13.15,
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 36.52,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "05ce0d6c03e43a10",
+      "key": "ec9037f5b05d9f47",
       "files": {
         "profile": "Images/People/Harrison/profile.webp",
         "card": "Images/People/Harrison/card.webp",
@@ -1630,7 +1630,7 @@
         "profile": {
           "x": 50,
           "y": 10,
-          "zoom": 2.2
+          "zoom": 1.17
         },
         "card": {
           "x": 50,
@@ -1643,7 +1643,7 @@
           "zoom": 1
         }
       },
-      "key": "77fb4ce45771024e",
+      "key": "7608b4ffddf4324b",
       "files": {
         "profile": "Images/People/Hayley Erbert/profile.webp",
         "card": "Images/People/Hayley Erbert/card.webp",
@@ -1659,21 +1659,21 @@
       "crops": {
         "profile": {
           "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "y": 25,
+          "zoom": 1
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 59.52,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 0,
           "zoom": 1
         }
       },
-      "key": "a9b68f293b6dba9e",
+      "key": "a4bef833444f821c",
       "files": {
         "profile": "Images/People/Heather Headley/profile.webp",
         "card": "Images/People/Heather Headley/card.webp",
@@ -1749,21 +1749,21 @@
       "crops": {
         "profile": {
           "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "y": 20.01,
+          "zoom": 1
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 53.13,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 2.94,
           "zoom": 1
         }
       },
-      "key": "297f41b366820865",
+      "key": "4215c4529551a63c",
       "files": {
         "profile": "Images/People/Joseph Gordon-Levitt/profile.webp",
         "card": "Images/People/Joseph Gordon-Levitt/card.webp",
@@ -1808,22 +1808,22 @@
       "sourceSha": "e0a9bbdb1f28f807",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 58.83,
+          "y": 0,
+          "zoom": 1.45
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 17.99,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 0,
           "zoom": 1
         }
       },
-      "key": "e3548e8c0a3bb5aa",
+      "key": "518c2e8d602dc0ec",
       "files": {
         "profile": "Images/People/Kyra Belle Johnson/profile.webp",
         "card": "Images/People/Kyra Belle Johnson/card.webp",
@@ -1898,22 +1898,22 @@
       "sourceSha": "482751537301b574",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 100,
+          "y": 0,
+          "zoom": 1.43
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 17.57,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 4.22,
           "zoom": 1
         }
       },
-      "key": "0574d1308cf8f595",
+      "key": "b8da2c6cf2716610",
       "files": {
         "profile": "Images/People/Michael James Scott/profile.webp",
         "card": "Images/People/Michael James Scott/card.webp",
@@ -1958,22 +1958,22 @@
       "sourceSha": "6c9b81ddf3b1b11d",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 0,
+          "y": 43.28,
+          "zoom": 1.36
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 65.34,
           "zoom": 1
         },
         "portrait": {
-          "x": 50,
+          "x": 0,
           "y": 8,
           "zoom": 1
         }
       },
-      "key": "1dadc5da682cdf01",
+      "key": "372dedb8b93a2011",
       "files": {
         "profile": "Images/People/Rodney Ingram/profile.webp",
         "card": "Images/People/Rodney Ingram/card.webp",
@@ -2018,9 +2018,9 @@
       "sourceSha": "0859d2eb178f0afa",
       "crops": {
         "profile": {
-          "x": 50,
-          "y": 10,
-          "zoom": 2.2
+          "x": 53.57,
+          "y": 0,
+          "zoom": 1.65
         },
         "card": {
           "x": 50,
@@ -2033,7 +2033,7 @@
           "zoom": 1
         }
       },
-      "key": "2ea6e30dc549721f",
+      "key": "7dabf29cb3bee089",
       "files": {
         "profile": "Images/People/Sherri Shepherd/profile.webp",
         "card": "Images/People/Sherri Shepherd/card.webp",
@@ -2080,20 +2080,20 @@
         "profile": {
           "x": 50,
           "y": 10,
-          "zoom": 2.2
+          "zoom": 1.84
         },
         "card": {
           "x": 50,
-          "y": 10,
+          "y": 21.31,
           "zoom": 1
         },
         "portrait": {
           "x": 50,
-          "y": 8,
+          "y": 0,
           "zoom": 1
         }
       },
-      "key": "98de375329d552de",
+      "key": "91765b1e90fb8636",
       "files": {
         "profile": "Images/People/Susan May Pratt/profile.webp",
         "card": "Images/People/Susan May Pratt/card.webp",
