@@ -1730,6 +1730,18 @@
       "sha": "d651102d6b357ba6"
     },
     {
+      "path": "Images/Dances/Card/Week 9/Maura Higgins and Mark Ballas-1.webp",
+      "sha": "eea4176981597b86"
+    },
+    {
+      "path": "Images/Dances/Card/Week 9/Maura Higgins and Mark Ballas-2.webp",
+      "sha": "77a88d445d5a4877"
+    },
+    {
+      "path": "Images/Dances/Card/Week 9/Maura Higgins and Mark Ballas-3.webp",
+      "sha": "afb997c563ef1e9d"
+    },
+    {
       "path": "Images/Dances/Week 1/Amber Glenn and Pasha Pashkov-Night 2-1.jpeg",
       "sha": "e9aa12a2174521fc"
     },
@@ -3948,6 +3960,30 @@
     {
       "path": "Images/Dances/Week 9/Ezra Frech and Daniella Karagach-3.jpeg.source.json",
       "sha": "5668d412435dec58"
+    },
+    {
+      "path": "Images/Dances/Week 9/Maura Higgins and Mark Ballas-1.jpeg",
+      "sha": "5e862971b80e5abf"
+    },
+    {
+      "path": "Images/Dances/Week 9/Maura Higgins and Mark Ballas-1.jpeg.source.json",
+      "sha": "676ceb32582a5f24"
+    },
+    {
+      "path": "Images/Dances/Week 9/Maura Higgins and Mark Ballas-2.jpeg",
+      "sha": "b819faa9cddcc6ee"
+    },
+    {
+      "path": "Images/Dances/Week 9/Maura Higgins and Mark Ballas-2.jpeg.source.json",
+      "sha": "45dd4dad10b75dd2"
+    },
+    {
+      "path": "Images/Dances/Week 9/Maura Higgins and Mark Ballas-3.jpeg",
+      "sha": "e5ebfe0e9a3b2341"
+    },
+    {
+      "path": "Images/Dances/Week 9/Maura Higgins and Mark Ballas-3.jpeg.source.json",
+      "sha": "1a0a1ebf6bc2253a"
     }
   ]
 }
