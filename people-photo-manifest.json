@@ -1412,6 +1412,36 @@
       }
     },
     {
+      "folder": "Assets/Guest/Brandy",
+      "name": "Brandy",
+      "source": "Assets/Guest/Brandy/Brandy.jpg",
+      "sourceSha": "323cfbde0ac75df6",
+      "crops": {
+        "profile": {
+          "x": 50,
+          "y": 10,
+          "zoom": 2.2
+        },
+        "card": {
+          "x": 50,
+          "y": 10,
+          "zoom": 1
+        },
+        "portrait": {
+          "x": 50,
+          "y": 8,
+          "zoom": 1
+        }
+      },
+      "key": "dc3e05aadbc86abb",
+      "files": {
+        "profile": "Images/People/Brandy/profile.webp",
+        "card": "Images/People/Brandy/card.webp",
+        "portrait": "Images/People/Brandy/portrait.webp",
+        "full": "Images/People/Brandy/full.webp"
+      }
+    },
+    {
       "folder": "Assets/Guest/Cynthia Erivo",
       "name": "Cynthia Erivo",
       "source": "Assets/Guest/Cynthia Erivo/Cynthia Erivo.jpeg",
@@ -1892,6 +1922,36 @@
       }
     },
     {
+      "folder": "Assets/Guest/Maren Morris",
+      "name": "Maren Morris",
+      "source": "Assets/Guest/Maren Morris/Maren Morris.jpg",
+      "sourceSha": "882b2f105d92f349",
+      "crops": {
+        "profile": {
+          "x": 50,
+          "y": 10,
+          "zoom": 2.2
+        },
+        "card": {
+          "x": 50,
+          "y": 10,
+          "zoom": 1
+        },
+        "portrait": {
+          "x": 50,
+          "y": 8,
+          "zoom": 1
+        }
+      },
+      "key": "37df173b483f7cee",
+      "files": {
+        "profile": "Images/People/Maren Morris/profile.webp",
+        "card": "Images/People/Maren Morris/card.webp",
+        "portrait": "Images/People/Maren Morris/portrait.webp",
+        "full": "Images/People/Maren Morris/full.webp"
+      }
+    },
+    {
       "folder": "Assets/Guest/Michael James Scott",
       "name": "Michael James Scott",
       "source": "Assets/Guest/Michael James Scott/Michael James Scott.jpg",
@@ -1919,6 +1979,36 @@
         "card": "Images/People/Michael James Scott/card.webp",
         "portrait": "Images/People/Michael James Scott/portrait.webp",
         "full": "Images/People/Michael James Scott/full.webp"
+      }
+    },
+    {
+      "folder": "Assets/Guest/Monica",
+      "name": "Monica",
+      "source": "Assets/Guest/Monica/Monica.jpg",
+      "sourceSha": "0e1f7792d491783d",
+      "crops": {
+        "profile": {
+          "x": 50,
+          "y": 10,
+          "zoom": 2.2
+        },
+        "card": {
+          "x": 50,
+          "y": 10,
+          "zoom": 1
+        },
+        "portrait": {
+          "x": 50,
+          "y": 8,
+          "zoom": 1
+        }
+      },
+      "key": "8df7b53b1e328eb5",
+      "files": {
+        "profile": "Images/People/Monica/profile.webp",
+        "card": "Images/People/Monica/card.webp",
+        "portrait": "Images/People/Monica/portrait.webp",
+        "full": "Images/People/Monica/full.webp"
       }
     },
     {
@@ -2039,6 +2129,36 @@
         "card": "Images/People/Sherri Shepherd/card.webp",
         "portrait": "Images/People/Sherri Shepherd/portrait.webp",
         "full": "Images/People/Sherri Shepherd/full.webp"
+      }
+    },
+    {
+      "folder": "Assets/Guest/Sheryl Crow",
+      "name": "Sheryl Crow",
+      "source": "Assets/Guest/Sheryl Crow/Sheryl Crow.jpg",
+      "sourceSha": "4124744cae47e848",
+      "crops": {
+        "profile": {
+          "x": 50,
+          "y": 10,
+          "zoom": 2.2
+        },
+        "card": {
+          "x": 50,
+          "y": 10,
+          "zoom": 1
+        },
+        "portrait": {
+          "x": 50,
+          "y": 8,
+          "zoom": 1
+        }
+      },
+      "key": "0fded1cb616d280b",
+      "files": {
+        "profile": "Images/People/Sheryl Crow/profile.webp",
+        "card": "Images/People/Sheryl Crow/card.webp",
+        "portrait": "Images/People/Sheryl Crow/portrait.webp",
+        "full": "Images/People/Sheryl Crow/full.webp"
       }
     },
     {
