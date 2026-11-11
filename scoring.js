@@ -65,7 +65,7 @@ export function competitiveAwards(data, scoreByDance) {
     }
   }
   // Late-season formats (same as Scoring.swift and get_league_scores): a team dance pays its
-  // judges' total to every couple on the team; a dance-off or relay win pays MATCH_BONUS, a
+  // judges' total to every couple on the team; a dance-off or relay win pays the match's stored bonus (dance_couples.points, else MATCH_BONUS), a
   // marathon DWTS's points; immunity what was entered. Those couples earn no appearance for it.
   const couplesByDance = new Map();
   for (const entry of data.danceCouples || []) {
@@ -79,7 +79,7 @@ export function competitiveAwards(data, scoreByDance) {
       if (!pair) continue;
       const points = dance.kind === 'team' ? total
         : dance.bonus_kind === 'marathon' ? Number(entry.points) || 0
-        : entry.result === 'winner' ? MATCH_BONUS : 0;
+        : entry.result === 'winner' ? (entry.points ?? MATCH_BONUS) : 0;
       for (const id of [pair.star_id, pair.pro_id].filter(Boolean)) {
         awards.push({ castId: id, points, weekId: dance.week_id, danceId: dance.id, bonus: dance.kind === 'bonus' });
         skippedAppearances.add(`${dance.id}:${id}`);
