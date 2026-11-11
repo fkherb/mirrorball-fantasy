@@ -1706,6 +1706,18 @@
       "sha": "fda3c395028426f2"
     },
     {
+      "path": "Images/Dances/Card/Week 9/Ezra Frech and Daniella Karagach-1.webp",
+      "sha": "a985c9aad404f200"
+    },
+    {
+      "path": "Images/Dances/Card/Week 9/Ezra Frech and Daniella Karagach-2.webp",
+      "sha": "8f7c1e621a7c51b9"
+    },
+    {
+      "path": "Images/Dances/Card/Week 9/Ezra Frech and Daniella Karagach-3.webp",
+      "sha": "d651102d6b357ba6"
+    },
+    {
       "path": "Images/Dances/Week 1/Amber Glenn and Pasha Pashkov-Night 2-1.jpeg",
       "sha": "e9aa12a2174521fc"
     },
@@ -3876,6 +3888,30 @@
     {
       "path": "Images/Dances/Week 8/Team Wildcats-7.jpg",
       "sha": "e6d69f9fc8a120de"
+    },
+    {
+      "path": "Images/Dances/Week 9/Ezra Frech and Daniella Karagach-1.jpeg",
+      "sha": "ba4c75d8d488a712"
+    },
+    {
+      "path": "Images/Dances/Week 9/Ezra Frech and Daniella Karagach-1.jpeg.source.json",
+      "sha": "2ba6f0e85bea7cc6"
+    },
+    {
+      "path": "Images/Dances/Week 9/Ezra Frech and Daniella Karagach-2.jpeg",
+      "sha": "a907525fb8cef3ee"
+    },
+    {
+      "path": "Images/Dances/Week 9/Ezra Frech and Daniella Karagach-2.jpeg.source.json",
+      "sha": "b55253ed1b43b1ec"
+    },
+    {
+      "path": "Images/Dances/Week 9/Ezra Frech and Daniella Karagach-3.jpeg",
+      "sha": "125c2913206805e2"
+    },
+    {
+      "path": "Images/Dances/Week 9/Ezra Frech and Daniella Karagach-3.jpeg.source.json",
+      "sha": "5668d412435dec58"
     }
   ]
 }
